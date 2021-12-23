@@ -27,6 +27,8 @@ redditpassword= #your reddit application password
 aiapikey= #your api key from https://api-info.pgamerx.com/register.html
 ```
 
+Run `pip3 install -r requirements.txt` in your terminal
+
 Then run `launcher.py`
 
 
