@@ -3,12 +3,11 @@ import os
 import random
 import textwrap
 from io import BytesIO
+import requests
 import aiohttp
 import discord
 from bot.cogs.utils.embed import Embeds
 import PIL.Image
-from aiohttp import request
-from aiohttp_requests import requests
 from discord.ext import commands
 from dotenv import load_dotenv
 from PIL import ImageDraw, ImageFont
@@ -213,7 +212,7 @@ class Image(commands.Cog):
 
             async with ctx.typing():
 
-                async with request("GET", animal_image_url, headers={}) as response:
+                async with aiohttp.ClientSession().get("GET", animal_image_url, headers={}) as response:
                     if response.status == 200:
                         animal_api = await response.json()
                         image_link = animal_api["link"]
@@ -221,7 +220,7 @@ class Image(commands.Cog):
                     else:
                         image_link = None
 
-                async with request("GET", animal_fact_url, headers={}) as response:
+                async with aiohttp.ClientSession().get("GET", animal_fact_url, headers={}) as response:
                     if response.status == 200:
                         animal_api = await response.json()
 
@@ -249,7 +248,7 @@ class Image(commands.Cog):
         except:
             meme_link = 'https://some-random-api.ml/meme'
 
-            async with request("GET", meme_link, headers={}) as response:
+            async with aiohttp.ClientSession().get("GET", meme_link, headers={}) as response:
                 if response.status == 200:
                     api = await response.json()
                     image = api["image"]
@@ -466,7 +465,7 @@ class Image(commands.Cog):
         wink_image = 'https://some-random-api.ml/animu/wink'
 
         async with ctx.typing():
-            async with request("GET", wink_image, headers={}) as response:
+            async with aiohttp.ClientSession().get("GET", wink_image, headers={}) as response:
                 if response.status == 200:
                     api = await response.json()
                     image = api["link"]
@@ -481,7 +480,7 @@ class Image(commands.Cog):
         hug_image = 'https://some-random-api.ml/animu/hug'
 
         async with ctx.typing():
-            async with request("GET", hug_image, headers={}) as response:
+            async with aiohttp.ClientSession().get("GET", hug_image, headers={}) as response:
                 if response.status == 200:
                     api = await response.json()
                     image = api["link"]
@@ -496,7 +495,7 @@ class Image(commands.Cog):
         pikachu_image = 'https://some-random-api.ml/img/pikachu'
 
         async with ctx.typing():
-            async with request("GET", pikachu_image, headers={}) as response:
+            async with aiohttp.ClientSession().get("GET", pikachu_image, headers={}) as response:
                 if response.status == 200:
                     api = await response.json()
                     image = api["link"]
