@@ -25,6 +25,8 @@ redditid= #your reddit application id
 redditsecret= #your reddit application secret
 redditpassword= #your reddit application password
 aiapikey= #your api key from https://api-info.pgamerx.com/register.html
+GITHUB_REPO_LINK=https://github.com/Conchbot-Development/ConchBot
+GITHUB_REPO_BRANCH=master
 ```
 
 Run `pip3 install -r requirements.txt` in your terminal
