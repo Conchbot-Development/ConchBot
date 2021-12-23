@@ -5,6 +5,43 @@ class Help(commands.Cog):
     def __init__(self, client):
         self.client = client
  
+    async def get_command(self, ctx, value : str)->str:
+        command = self.client.get_command(value.lower())
+
+        if command is None:
+            return await ctx.send("That command does not exist.")
+
+        if command.cog.qualified_name == "NSFW":
+            return await ctx.send("You can only view NSFW commands in NSFW-marked channels.")
+
+        if command is not None:
+            params = "".join(f"[{thing}] " for thing in command.clean_params)
+
+            embed = discord.Embed(title=f"{value} Command", color=discord.Color.random())
+            embed.add_field(name="Description:", value=command.description, inline=False)
+            aliases = '*No Aliases*' if len(command.aliases) < 1 else command.aliases
+            embed.add_field(name="Aliases:", value=aliases, inline=False)
+            embed.add_field(name="How to use:", value=f"`cb {command.qualified_name} {params}`", inline=False)
+
+            return await ctx.send(embed=embed)
+
+        else:
+            cog = self.client.get_cog(value)
+
+            if cog is None:
+                embed = discord.Embed(title=f"No groups or commands by the name `{value}`", color=discord.Color.red(), description="Command categories are case-sensitive.")
+                return await ctx.send(embed=embed)
+
+            if cog.qualified_name == "NSFW" and not ctx.channel.is_nsfw():
+                return await ctx.send("You can only view the NSFW category in NSFW-marked channels.")
+
+            embed = discord.Embed(title=f"{cog.qualified_name} Category", color=discord.Color.random(), description=cog.description)
+            commands = "".join(f"{command}, " for command in cog.walk_commands())
+            embed.add_field(name="Commands:", value=f"`{commands[:-2]}`")
+
+            await ctx.send(embed=embed)
+
+
     @commands.command()
     async def help(self, ctx, *, value=None):
         cogs = self.client.cogs
@@ -46,40 +83,7 @@ class Help(commands.Cog):
             await ctx.send(embed=embed)
 
         else:
-            command = self.client.get_command(value.lower())
-
-            if command is None:
-                return await ctx.send("That command does not exist.")
-
-            if command.cog.qualified_name == "NSFW":
-                return await ctx.send("You can only view NSFW commands in NSFW-marked channels.")
-
-            if command is not None:
-                params = "".join(f"[{thing}] " for thing in command.clean_params)
-
-                embed = discord.Embed(title=f"{value} Command", color=discord.Color.random())
-                embed.add_field(name="Description:", value=command.description, inline=False)
-                aliases = '*No Aliases*' if len(command.aliases) < 1 else command.aliases
-                embed.add_field(name="Aliases:", value=aliases, inline=False)
-                embed.add_field(name="How to use:", value=f"`cb {command.qualified_name} {params}`", inline=False)
-
-                return await ctx.send(embed=embed)
-
-            else:
-                cog = self.client.get_cog(value)
-
-                if cog is None:
-                    embed = discord.Embed(title=f"No groups or commands by the name `{value}`", color=discord.Color.red(), description="Command categories are case-sensitive.")
-                    return await ctx.send(embed=embed)
-
-                if cog.qualified_name == "NSFW" and not ctx.channel.is_nsfw():
-                    return await ctx.send("You can only view the NSFW category in NSFW-marked channels.")
-
-                embed = discord.Embed(title=f"{cog.qualified_name} Category", color=discord.Color.random(), description=cog.description)
-                commands = "".join(f"{command}, " for command in cog.walk_commands())
-                embed.add_field(name="Commands:", value=f"`{commands[:-2]}`")
-
-                await ctx.send(embed=embed)
+            await self.get_command(ctx, str(value).lower())
                 
 def setup(client):
     client.add_cog(Help(client))
