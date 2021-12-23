@@ -112,17 +112,12 @@ class Utility(commands.Cog):
         embed = discord.Embed(title=f'{self.client.user.name} Stats', colour=ctx.author.colour)
         embed.add_field(name="Bot Name:", value=self.client.user.name)
         embed.add_field(name="Bot Id:", value=self.client.user.id)
-        embed.add_field(name="Bot Version:", value="1.3.4")
-        embed.add_field(name="Python Version:", value=platform.python_version())
-        embed.add_field(name="Discord.py Version:", value=discord.__version__)
         embed.add_field(name="Total Guilds:", value=len(self.client.guilds))
         embed.add_field(name="Total Users:", value=len(set(self.client.get_all_members())))
         embed.add_field(name="Total Commands:", value=len(set(self.client.commands)))
         embed.add_field(name="Total Cogs:", value=len(set(self.client.cogs)))
         embed.add_field(name="Uptime:", value=f"{days}**d**, {hours}**h**, {minutes}**m**, {seconds}**s**", inline=True)
         embed.add_field(name="Uptime Lapse:", value=text)
-        embed.add_field(name="Bot Developers:", value="UnsoughtConch")
-        embed.add_field(name="Bot Developers Ids:", value="UnsoughtConch - 579041484796461076")
         await ctx.send(embed=embed)
 
 
@@ -192,80 +187,6 @@ class Utility(commands.Cog):
         else:
             await ctx.send("You don't have permissions to make me leave!")
 
-    @commands.group(invoke_without_command=True, aliases=["update"])
-    async def updates(self, ctx):
-        version, name, desc, updates, published = await self.get_update_info()
-        
-        embed = discord.Embed(title=f"**__ConchBot Update {name}__**", colour=ctx.author.colour)
-        embed.add_field(name="**Update Name:**", value=name, inline=False)
-        embed.add_field(name="**Description:**", value=desc, inline=False)
-        embed.add_field(name="**Updates:**", value=updates, inline=False)
-        embed.set_footer(text=f"ConchBot Update {version} | Published {published}")
-        await ctx.send(embed=embed)
-
-    @updates.command()
-    @commands.is_owner()
-    async def publish(self, ctx, version, *, content):
-        db = await aiosqlite.connect("./bot/db/updates.db")
-        cursor = await db.cursor()
-        now = datetime.datetime.now()
-        td = datetime.datetime.today()
-        currenttime = datetime.time(hour=now.hour, minute=now.minute).isoformat(timespec='minutes')
-        name, desc, updates = content.split(", ")
-
-        await ctx.send("This is how it will look. Good?")
-
-        embed = discord.Embed(title=name, colour=ctx.author.colour)
-        embed.add_field(name="**Update Name:**", value=name, inline=False)
-        embed.add_field(name="**Description:**", value=desc, inline=False)
-        embed.add_field(name="**Updates:**", value=updates, inline=False)
-        embed.set_footer(text=f"ConchBot Update {version} | Published {td.month}/{td.day}/{td.year} at {currenttime}")
-        await ctx.send(embed=embed)
-
-        msg = await self.client.wait_for('message', check=lambda message: message.author == ctx.author, timeout=10)
-
-        if "yes" in msg.content.lower():
-            await cursor.execute(f"INSERT INTO updates (version, name, desc, updates, published) VALUES "
-            f"('{version}', '{name}', '{desc}', '{updates}', '{td.month}/{td.day}/{td.year} at {currenttime}')")
-            await ctx.send("Update published!")
-        else:
-            await ctx.send("Aborting...")
-        
-        await db.commit()
-        await cursor.close()
-        await db.close()
-
-    @updates.command()
-    async def list(self, ctx):
-        db = await aiosqlite.connect("./bot/db/updates.db")
-        cursor = await db.cursor()
-
-        await cursor.execute("SELECT version FROM updates")
-        versions = await cursor.fetchall()
-
-        await cursor.close()
-        await db.close()        
-
-        embed = discord.Embed(title="ConchBot Updates", color=ctx.author.color)
-
-        for version in versions:
-            name = await self.get_update_info(version[0])
-            embed.add_field(name=name[1], value=f"Update {version[0]}")
-        embed.set_footer(text="To view a certain update, use 'cb update {version}.'")
-
-        await ctx.send(embed=embed)
-
-    @updates.command()
-    async def info(self, ctx, version: int):
-        version, name, desc, updates, published = await self.get_update_info(version)
-
-        embed = discord.Embed(title=f"**__ConchBot Update {name}__**", colour=ctx.author.colour)
-        embed.add_field(name="**Update Name:**", value=name, inline=False)
-        embed.add_field(name="**Description:**", value=desc, inline=False)
-        embed.add_field(name="**Updates:**", value=updates, inline=False)
-        embed.set_footer(text=f"ConchBot Update {version} | Published {published}")
-        await ctx.send(embed=embed)
-
     @clear.error
     async def clear_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
@@ -279,60 +200,7 @@ class Utility(commands.Cog):
             return
         
 
-    @commands.command(aliases=["close"])
-    @commands.is_owner()
-    async def shutdown(self, ctx):
-        await ctx.send("Ending Python process ConchBot... Goodbye")
-        await self.client.logout()
-
-    @commands.command()
-    @commands.is_owner()
-    async def editmoners(self, ctx, user:discord.Member, amount:int):
-        await Currency.open_account(self, user)
-        await Currency.update_bank(self, user, amount)
-        await ctx.send(f"Successfully given {user.name} {amount} moners.")
-
-    @commands.command(aliases=["pull"])
-    @commands.is_owner()
-    async def refresh(self, ctx):
-        cog = self.client.get_cog("Jishaku")
-        await cog.jsk_git(ctx, argument=codeblock_converter('stash'))
-        await asyncio.sleep(2)
-        await cog.jsk_git(
-            ctx,
-            argument=codeblock_converter(
-                'pull --ff-only --allow-unrelated-histories https://www.github.com/ConchDev/ConchBot master'
-            ),
-        )
-
-        await asyncio.sleep(2)
-        restart = self.client.get_command('restart')
-        await ctx.invoke(restart)
-
-    @commands.command()
-    @commands.is_owner()
-    async def restart(self, ctx):
-        def restarter():
-            python = sys.executable
-            os.execl(python, python, * sys.argv)
-
-        embed = discord.Embed(title="Bot Restarting...")
-        embed.add_field(name="I'll be back soon...", value="Don't worry", inline=True)
-        await ctx.send(embed=embed)
-        restarter()
-
-    @commands.command(aliases=["close"])
-    @commands.is_owner()
-    async def shutdown(self, ctx):
-        await ctx.send("Ending Python process ConchBot... Goodbye")
-        await self.client.close()
     
-    @commands.command()
-    @commands.is_owner()
-    async def edititems(self, ctx, user:discord.Member, item, amount:int):
-        await Currency.open_account(self, user)
-        await Currency.item_func(self, user, item, amount)
-        await ctx.send(f"Successfully given {user.name} {amount} {item}s.")
     
     @commands.group(invoke_without_command=True)
     @commands.is_owner()
