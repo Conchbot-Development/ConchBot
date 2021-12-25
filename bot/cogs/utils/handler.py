@@ -52,7 +52,7 @@ class CommandErrorHandler(commands.Cog):
             embed = Embeds().OnError(ctx.command.qualified_name, self.time, "You have been timed out because you didn't respond in time")
             await ctx.send(embed=embed)          
         elif isinstance(error, discord.HTTPException):
-            embed = Embeds().OnError(ctx.command.qualified_name, self.time, "Something went wrong... Please Contact: Jerry.py#4249 or UnsoughtConch#9225 if it keeps happening")
+            embed = Embeds().OnError(ctx.command.qualified_name, self.time, "Something went wrong... Please Contact: Jerry.py#4249 if it keeps happening")
             await ctx.send(embed=embed)
         if not isinstance(error, discord.HTTPException):
             try:

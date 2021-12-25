@@ -3,14 +3,11 @@ import platform
 import datetime
 import discord
 from discord.ext import commands
-import aiosqlite
+import sqlite3
 import inspect
 import os
 from dotenv import load_dotenv
 import time
-from bot.cogs.Currency import Currency
-import asyncio
-import sys
 from jishaku.codeblocks import codeblock_converter
 
 start_time = time.time()
@@ -22,24 +19,24 @@ class Utility(commands.Cog):
         self.client = client
     
     async def get_update_info(self, version=None):
-        db = await aiosqlite.connect("./bot/db/updates.db")
-        cursor = await db.cursor()
+        db = sqlite3.connect("./bot/db/updates.db")
+        cursor = db.cursor()
 
         if version is None:
-            await cursor.execute("SELECT MAX(version) FROM updates")
-            result = await cursor.fetchone()
+            cursor.execute("SELECT MAX(version) FROM updates")
+            result = cursor.fetchone()
             version = result[0]
-        await cursor.execute(f"SELECT name FROM updates WHERE version = '{version}'")
-        name = await cursor.fetchone()
-        await cursor.execute(f"SELECT desc FROM updates WHERE version = '{version}'")
-        desc = await cursor.fetchone()
-        await cursor.execute(f"SELECT updates FROM updates WHERE version = '{version}'")
-        updates = await cursor.fetchone()
-        await cursor.execute(f"SELECT published FROM updates WHERE version = '{version}'")
-        published = await cursor.fetchone()
+        cursor.execute(f"SELECT name FROM updates WHERE version = '{version}'")
+        name = cursor.fetchone()
+        cursor.execute(f"SELECT desc FROM updates WHERE version = '{version}'")
+        desc = cursor.fetchone()
+        cursor.execute(f"SELECT updates FROM updates WHERE version = '{version}'")
+        updates = cursor.fetchone()
+        cursor.execute(f"SELECT published FROM updates WHERE version = '{version}'")
+        published = cursor.fetchone()
 
-        await cursor.close()
-        await db.close()        
+        cursor.close()
+        db.close()        
 
         return version, name[0], desc[0], updates[0], published[0]
 
@@ -99,7 +96,6 @@ class Utility(commands.Cog):
     @commands.command(aliases=["statistics", "info", "information"])
     @commands.cooldown(1, 5, commands.BucketType.user) 
     async def stats(self, ctx):
-        uname = platform.uname()
         delta_uptime = datetime.datetime.utcnow() - self.client.launch_time
         hours, remainder = divmod(int(delta_uptime.total_seconds()), 3600)
         minutes, seconds = divmod(remainder, 60)
@@ -213,37 +209,37 @@ class Utility(commands.Cog):
         if id is None:
             await ctx.send("You need the id of that user")
         else:
-            db = await aiosqlite.connect("./bot/db/config.db")
-            cursor = await db.cursor()
-            await cursor.execute(f"SELECT id FROM blacklist WHERE id = {id}")
-            result = await cursor.fetchone()
+            db = sqlite3.connect("./bot/db/config.db")
+            cursor = db.cursor()
+            cursor.execute(f"SELECT id FROM blacklist WHERE id = {id}")
+            result = cursor.fetchone()
             if result is None:
-                await cursor.execute(f"INSERT INTO blacklist (id) VALUES ({id})")
+                cursor.execute(f"INSERT INTO blacklist (id) VALUES ({id})")
                 await ctx.send("Member blacklisted.")
             else:
                 await ctx.send("That Member is already blacklisted.")
-            await db.commit()
-            await cursor.close()
-            await db.close()
+            db.commit()
+            cursor.close()
+            db.close()
 
     @blacklist.command()
     async def remove(self, ctx, id):
         if id is None:
             await ctx.send("You need the id of that user")
         else:
-            db = await aiosqlite.connect("./bot/db/config.db")
-            cursor = await db.cursor()
-            await cursor.execute(f"SELECT id FROM blacklist WHERE guild_id = {ctx.guild.id}")
-            result = await cursor.fetchone()
+            db = sqlite3.connect("./bot/db/config.db")
+            cursor = db.cursor()
+            cursor.execute(f"SELECT id FROM blacklist WHERE guild_id = {ctx.guild.id}")
+            result = cursor.fetchone()
             blacklisted = result[0]
             if id not in blacklisted:
                 await ctx.send("That ID is not blacklisted.")
             else:
-                await cursor.execute(f"DELETE FROM blacklist WHERE guild_id = {ctx.guild.id}")
+                cursor.execute(f"DELETE FROM blacklist WHERE guild_id = {ctx.guild.id}")
                 await ctx.send("ID removed from blacklist.")
-            await db.commit()
-            await cursor.close()
-            await db.close()
+            db.commit()
+            cursor.close()
+            db.close()
 
 def setup(client):
     client.add_cog(Utility(client))

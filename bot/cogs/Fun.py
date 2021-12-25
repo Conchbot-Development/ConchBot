@@ -11,7 +11,7 @@ from discord.ext import commands, menus
 from dotenv import load_dotenv
 import os
 import urllib
-import aiosqlite
+import sqlite3
 from bot.cogs.utils.embed import Embeds
 import datetime
 import randomstuff
@@ -55,22 +55,22 @@ class Fun(commands.Cog):
             return False
             
     async def create_gofile_folder(self, user_id):
-        db = await aiosqlite.connect('./bot/db/config.db')
-        cursor = await db.cursor()
+        db = sqlite3.connect('./bot/db/config.db')
+        cursor = db.cursor()
 
-        await cursor.execute(f"SELECT user_id FROM gofile WHERE user_id = {user_id}")
-        result = await cursor.fetchone()
+        cursor.execute(f"SELECT user_id FROM gofile WHERE user_id = {user_id}")
+        result = cursor.fetchone()
 
         if result is not None:
-            await cursor.close()
-            await db.close()
+            cursor.close()
+            db.close()
             return True
 
         else:
-            await cursor.execute(f"INSERT INTO gofile (user_id) VALUES ({user_id})")
-            await db.commit()
-            await cursor.close()
-            await db.close()
+            cursor.execute(f"INSERT INTO gofile (user_id) VALUES ({user_id})")
+            db.commit()
+            cursor.close()
+            db.close()
 
             folderid = os.getenv("GOFILE_FOLDER_ID")
             token = os.getenv("GOFILE_TOKEN")
