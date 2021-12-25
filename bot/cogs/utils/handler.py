@@ -5,7 +5,6 @@ import asyncio
 from dotenv import load_dotenv
 import os
 import datetime
-from bot.cogs.tags import Tags
 from bot.cogs.utils.embed import Embeds
 
 env = load_dotenv()
@@ -21,17 +20,6 @@ class CommandErrorHandler(commands.Cog):
             error = error.original
         except:
             error = error
-            
-        if isinstance(error, commands.CommandNotFound):
-            try:
-                e = await Tags.get_tag(self, ctx.guild.id, ctx.message.content[3:])
-                if e is False:
-                    return
-                else:
-                    return await ctx.send(e[0])
-                    
-            except:
-                return
 
         if isinstance(error, IndexError):
             embed = Embeds().OnError(ctx.command.qualified_name, self.time, "The number value you input was invalid")

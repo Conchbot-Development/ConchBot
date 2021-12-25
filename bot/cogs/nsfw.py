@@ -1,12 +1,11 @@
 import discord
-from discord.ext import commands
+from discord.ext import commands, menus
 from dotenv import load_dotenv
 import asyncpraw
 import os
 import random
 import rule34
 from hentai import Hentai, Format, Utils
-import DiscordUtils
 
 load_dotenv('.env')
 
@@ -64,11 +63,13 @@ class NSFW(commands.Cog):
                 embed.set_footer(text=f"Author: {artist} | Upload date: {doujin.upload_date} | Page {num} of {len(doujin.image_urls)}")
                 embeds.append(embed)
 
-            paginator = DiscordUtils.Pagination.CustomEmbedPaginator(ctx, remove_reactions=True)
-            paginator.add_reaction('⏪', "back")
-            paginator.add_reaction('⏩', "next")
+            paginator = menus.Paginator(pages=embeds, show_disabled=False, show_indicator=True)
+            paginator.customize_button("next", button_label=">", button_style=discord.ButtonStyle.green)
+            paginator.customize_button("prev", button_label="<", button_style=discord.ButtonStyle.green)
+            paginator.customize_button("first", button_label="<<", button_style=discord.ButtonStyle.blurple)
+            paginator.customize_button("last", button_label=">>", button_style=discord.ButtonStyle.blurple)
 
-            await paginator.run(embeds)
+            await paginator.send(ctx, ephemeral=False)
 
     @commands.command(description="Get porn from Reddit r/porn.")
     @commands.cooldown(1, 5, commands.BucketType.user) 

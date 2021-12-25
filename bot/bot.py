@@ -5,12 +5,12 @@ import discord
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 from datetime import datetime
-from bot.cogs.tags import Tags
 from bot.cogs.Currency import Currency
 import time
-import aiohttp
 from bot.cogs.utils.embed import Embeds
 import logging
+from disgames import register_commands
+import aiohttp
 
 def get_prefix(client, message):
     prefixes = ['cb ', 'cb!', 'cB ', 'CB ', 'Cb ']
@@ -24,11 +24,8 @@ initial_extensions = [
     "bot.cogs.Fun",
     "bot.cogs.Help",
     "bot.cogs.Image",
-    "bot.cogs.Misc",
     "bot.cogs.nsfw",
-    "bot.cogs.Secret",
     "bot.cogs.Support",
-    "bot.cogs.tags",
     "bot.cogs.Utility"
 ]
 
@@ -55,6 +52,7 @@ class ConchBot(commands.Bot):
             handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
             logger.addHandler(handler)
         self.load_extension('bot.cogs.utils.handler')
+        register_commands(self)
 
     @tasks.loop(seconds=15.0)
     async def status_loop(self):
@@ -63,15 +61,15 @@ class ConchBot(commands.Bot):
         while True:
             await self.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=next(statuses)))
             await asyncio.sleep(20)
+            
+    async def create_aiohttp_session(self):
+        self.aiohttp = aiohttp.ClientSession()
+        print("AIOHTTP connection established.")
 
     async def on_ready(self):
         print("------")
         print("ConchBot is online!")
         await self.status_loop()
-
-    async def create_aiohttp_session(self):
-        self.aiohttp = aiohttp.ClientSession()
-        print("AIOHTTP connection established.")
     
     async def shutdown(self):
         print("------")
@@ -99,7 +97,6 @@ class ConchBot(commands.Bot):
         if ctx.command.cog.qualified_name == "NSFW" and not ctx.channel.is_nsfw():
             embed = Embeds().OnError(ctx.command.qualified_name, self.time, "The command can only be used in NSFW channels!")
             await ctx.send(embed=embed)
-        await Tags.create_table(self, ctx.guild.id)
         await Currency.open_account(self, ctx.author) 
 
 

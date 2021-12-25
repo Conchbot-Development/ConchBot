@@ -2,13 +2,12 @@ import json
 import urllib.request
 import random
 import os
-import dbl
 import aiohttp
 import asyncpraw
 import discord
 from discord.ext.commands.cooldowns import BucketType
 import httpx
-from discord.ext import commands
+from discord.ext import commands, menus
 from dotenv import load_dotenv
 import os
 import urllib
@@ -28,7 +27,6 @@ reddit = asyncpraw.Reddit(client_id = os.getenv("redditid"),
                     user_agent = "ConchBotPraw")
 
 rs = randomstuff.AsyncClient(api_key = os.getenv("aiapikey"))
-dbltoken = os.getenv('DBLTOKEN')
 
 class Fun(commands.Cog):
     '''
@@ -37,7 +35,6 @@ class Fun(commands.Cog):
 
     def __init__(self, client):
         self.client = client
-        self.dbl = dbl.DBLClient(self.client, dbltoken)
         self.time = datetime.datetime.utcnow().strftime('%Y:%m:%d %H:%M')
         
     async def category_convert(self, category):
@@ -113,16 +110,10 @@ class Fun(commands.Cog):
             return
         if message.channel.name == "conchchat":
             try:
-                votes = await self.dbl.get_bot_upvotes()
-                flag = any(int(item['id']) == int(message.author.id) for item in votes)
                 await message.channel.trigger_typing()
                 aimsg = rs.get_ai_response(message.content)
                 message = aimsg["message"]
-                if flag:
-                    await message.reply(message)
-                else:
-                    await message.reply(f"{message}\n\n*Consider voting for me on Top.gg! (<https://bit.ly/2PiLbwh>) "
-                    "It only takes a second of your time and you won't see this message anymore!*")
+                await message.reply(message)
             except AttributeError:
                 await message.channel.trigger_typing()
                 aimsg = await rs.get_ai_response(message.content)

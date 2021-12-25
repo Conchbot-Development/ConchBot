@@ -7,14 +7,12 @@ import aiosqlite
 import inspect
 import os
 from dotenv import load_dotenv
-import psutil
 import time
 from bot.cogs.Currency import Currency
 import asyncio
 import sys
 from jishaku.codeblocks import codeblock_converter
 
-obj_Disk = psutil.disk_usage('/')
 start_time = time.time()
 
 env = load_dotenv()

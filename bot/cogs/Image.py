@@ -26,6 +26,20 @@ class Image(commands.Cog):
 
     def __init__(self, client):
         self.client = client
+        
+    @property
+    def _session(self):
+        return self.client.http._HTTPClient__session
+
+    async def get_data(self, data_type: str = "json", url : str = None):
+        response = await self._session.get(url)
+        datatype = data_type.lower()
+        if datatype == "json":
+            return await response.json()
+        elif 'text' in data_type:
+            return await response.text()
+        else:
+            return 400
 
     @commands.command(description="Fuck this meme, all my homies hate this meme.")
     @commands.cooldown(1, 10, commands.BucketType.user) 
@@ -211,26 +225,22 @@ class Image(commands.Cog):
 
 
             async with ctx.typing():
-
-                async with aiohttp.ClientSession().get("GET", animal_image_url, headers={}) as response:
-                    if response.status == 200:
-                        animal_api = await response.json()
-                        image_link = animal_api["link"]
-
-                    else:
-                        image_link = None
-
-                async with aiohttp.ClientSession().get("GET", animal_fact_url, headers={}) as response:
-                    if response.status == 200:
-                        animal_api = await response.json()
-
-                        embed = discord.Embed(title=f"{animal.title()} fact")
-                        embed.add_field(name="Fact", value=animal_api["fact"])
-                        if image_link is not None:
-                            embed.set_image(url=image_link)
-                    else:
-                        embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=response.status)
-                    await ctx.send(embed=embed)
+                response = await self.get_data('json', animal_image_url)
+                try:
+                    animal_api = await response.json()
+                    image_link = animal_api["link"]
+                except:
+                    image_link = None
+                try:
+                    animal_api = self.get_data('json', animal_fact_url)
+                except:
+                    embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=400)
+                embed = discord.Embed(title=f"{animal.title()} fact")
+                embed.add_field(name="Fact", value=animal_api["fact"])
+                if image_link is not None:
+                    embed.set_image(url=image_link)
+                
+                await ctx.send(embed=embed)
 
         else:
             await ctx.send(f"Sorry but {animal} isn't in my api")
@@ -239,27 +249,24 @@ class Image(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def meme(self, ctx):
         try:
-            async with aiohttp.ClientSession() as cs:
-                async with cs.get('https://www.reddit.com/r/memes/hot.json') as r:
-                    res = await r.json()
-                embed = discord.Embed(title="Meme")
-                embed.set_image(url=res['data']['children'] [random.randint(0, 25)]['data']['url'])
-                await ctx.send(embed=embed)
+            res = await self.get_data('json', 'https://www.reddit.com/r/memes/hot.json')            
+            embed = discord.Embed(title="Meme")
+            embed.set_image(url=res['data']['children'] [random.randint(0, 25)]['data']['url'])
+            await ctx.send(embed=embed)
         except:
             meme_link = 'https://some-random-api.ml/meme'
 
-            async with aiohttp.ClientSession().get("GET", meme_link, headers={}) as response:
-                if response.status == 200:
-                    api = await response.json()
-                    image = api["image"]
-                    caption = api["caption"]
+            api = await self.get_data('json', meme_link)
+            try:
+                image = api["image"]
+                caption = api["caption"]
 
-                    embed = discord.Embed(title="Meme", description=caption)
-                    embed.set_image(url=image)
-                else:
-                    embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=response.status)
+                embed = discord.Embed(title="Meme", description=caption)
+                embed.set_image(url=image)
+            except:
+                embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=400)
 
-                await ctx.send(embed=embed)
+            await ctx.send(embed=embed)
 
     @commands.command(description="This command makes anyone *glassed*.\n[member] value is optional.")
     async def glass(self, ctx, member: discord.Member=None):
@@ -311,7 +318,7 @@ class Image(commands.Cog):
     @commands.command(description="This command converts rgb to hex")
     async def hex(self, ctx, hex):
         if not hex:
-            await ctx.send("Put a hex code in")
+            await ctx.send("Please input a hex value")
         async with ctx.typing():
             async with aiohttp.ClientSession() as hexSession:
                 async with hexSession.get(f'https://some-random-api.ml/canvas/colorviewer?hex={hex}') as hexImage:
@@ -381,7 +388,7 @@ class Image(commands.Cog):
         pat_image = "https://some-random-api.ml/animu/pat"
 
         async with ctx.typing():
-            async with request("GET", pat_image, headers={}) as response:
+            async with aiohttp.ClientSession.get("GET", pat_image, headers={}) as response:
                 if response.status == 200:
                     api = await response.json()
                     image = api["link"]
