@@ -201,7 +201,7 @@ class Image(commands.Cog):
             member = ctx.author
 
         wanted = Image.open("bot/src/MemeTemplates/wanted.jpg")
-        asset = member.avatar_url_as(size=128)
+        asset = member.avatar.url_as(size=128)
         data = BytesIO(await asset.read())
         pfp = Image.open(data)
         pfp = pfp.resize((308, 306))
@@ -274,7 +274,7 @@ class Image(commands.Cog):
             member = ctx.author
         async with ctx.typing():
             async with aiohttp.ClientSession() as glassSession:
-                async with glassSession.get(f'https://some-random-api.ml/canvas/glass?avatar={member.avatar_url_as(format="png", size=1024)}') as glassImage:
+                async with glassSession.get(f'https://some-random-api.ml/canvas/glass?avatar={member.avatar.url_as(format="png", size=1024)}') as glassImage:
                     imageData = io.BytesIO(await glassImage.read())
                     
                     await glassSession.close()
@@ -287,7 +287,7 @@ class Image(commands.Cog):
             member = ctx.author
         async with ctx.typing():
             async with aiohttp.ClientSession() as invertSession:
-                async with invertSession.get(f'https://some-random-api.ml/canvas/invert?avatar={member.avatar_url_as(format="png", size=1024)}') as invertImage:
+                async with invertSession.get(f'https://some-random-api.ml/canvas/invert?avatar={member.avatar.url_as(format="png", size=1024)}') as invertImage:
                     if invertImage.status == 200:
                         imageData = io.BytesIO(await invertImage.read())
                     
@@ -304,7 +304,7 @@ class Image(commands.Cog):
             member = ctx.author
         async with ctx.typing():
             async with aiohttp.ClientSession() as brightSession:
-                async with brightSession.get(f'https://some-random-api.ml/canvas/bright?avatar={member.avatar_url_as(format="png", size=1024)}') as brightImage:
+                async with brightSession.get(f'https://some-random-api.ml/canvas/bright?avatar={member.avatar.url_as(format="png", size=1024)}') as brightImage:
                     if brightImage.status == 200:
                         imageData = io.BytesIO(await brightImage.read())
                     
@@ -334,7 +334,7 @@ class Image(commands.Cog):
 
     @commands.command(description="Make a YouTube comment!")
     async def comment(self, ctx, member: discord.Member, comment:str):
-        member_avatar = member.avatar_url_as(format="png", size=256)
+        member_avatar = member.avatar.url_as(format="png", size=256)
         api_link = f"https://some-random-api.ml/canvas/youtube-comment?avatar={member_avatar}&comment={comment}&username={member.name}"
 
         async with ctx.typing():
@@ -356,7 +356,7 @@ class Image(commands.Cog):
             member = ctx.author
         async with ctx.typing():
             async with aiohttp.ClientSession() as blurSession:
-                async with blurSession.get(f'https://some-random-api.ml/canvas/blur?avatar={member.avatar_url_as(format="png", size=1024)}') as blurImage:
+                async with blurSession.get(f'https://some-random-api.ml/canvas/blur?avatar={member.avatar.url_as(format="png", size=1024)}') as blurImage:
                     if blurImage.status == 200:
                         imageData = io.BytesIO(await blurImage.read())
 
@@ -372,7 +372,7 @@ class Image(commands.Cog):
             member = ctx.author
         async with ctx.typing():
             async with aiohttp.ClientSession() as pixelSession:
-                async with pixelSession.get(f'https://some-random-api.ml/canvas/pixelate?avatar={member.avatar_url_as(format="png", size=1024)}') as pixelImage:
+                async with pixelSession.get(f'https://some-random-api.ml/canvas/pixelate?avatar={member.avatar.url_as(format="png", size=1024)}') as pixelImage:
                     if pixelImage.status == 200:
                         imageData = io.BytesIO(await pixelImage.read())
 
@@ -404,7 +404,7 @@ class Image(commands.Cog):
             member = ctx.author
         async with ctx.typing():
             async with aiohttp.ClientSession() as wastedSession:
-                async with wastedSession.get(f'https://some-random-api.ml/canvas/triggered?avatar={member.avatar_url_as(format="png", size=1024)}') as wastedImage:
+                async with wastedSession.get(f'https://some-random-api.ml/canvas/triggered?avatar={member.avatar.url_as(format="png", size=1024)}') as wastedImage:
                     if wastedImage.status == 200:
                         imageData = io.BytesIO(await wastedImage.read())
                     
@@ -421,7 +421,7 @@ class Image(commands.Cog):
             member = ctx.author
         async with ctx.typing():
             async with aiohttp.ClientSession() as gaySession:
-                async with gaySession.get(f'https://some-random-api.ml/canvas/gay?avatar={member.avatar_url_as(format="png", size=1024)}') as gayImage:
+                async with gaySession.get(f'https://some-random-api.ml/canvas/gay?avatar={member.avatar.url_as(format="png", size=1024)}') as gayImage:
                     if gayImage.status == 200:
                         imageData = io.BytesIO(await gayImage.read())
                     
@@ -438,7 +438,7 @@ class Image(commands.Cog):
             member = ctx.author
         async with ctx.typing():
             async with aiohttp.ClientSession() as passSession:
-                async with passSession.get(f'https://some-random-api.ml/canvas/passed?avatar={member.avatar_url_as(format="png", size=1024)}') as passedImage:
+                async with passSession.get(f'https://some-random-api.ml/canvas/passed?avatar={member.avatar.url_as(format="png", size=1024)}') as passedImage:
                     if passedImage.status == 200:
                         imageData = io.BytesIO(await passedImage.read())
                     
@@ -455,7 +455,7 @@ class Image(commands.Cog):
             member = ctx.author
         async with ctx.typing():
             async with aiohttp.ClientSession() as wastedSession:
-                async with wastedSession.get(f'https://some-random-api.ml/canvas/wasted?avatar={member.avatar_url_as(format="png", size=1024)}') as wastedImage:
+                async with wastedSession.get(f'https://some-random-api.ml/canvas/wasted?avatar={member.avatar.url_as(format="png", size=1024)}') as wastedImage:
                     if wastedImage.status == 200:
                         imageData = io.BytesIO(await wastedImage.read())
                     

@@ -86,7 +86,7 @@ class Support(commands.Cog):
             )
             embed.add_field(name="Submitted by:", value=ctx.author.name)
             embed.add_field(name="Suggestion:", value=suggestion)
-            embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
+            embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar.url)
             await ctx.send("Your suggestion has been submitted!")
             suggestion_message = await channel.send(embed=embed)
             await suggestion_message.add_reaction("⬆️")

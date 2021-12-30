@@ -161,7 +161,7 @@ class Utility(commands.Cog):
 
             embed.add_field(name="Command Source:", value=final_url, inline=False)
 
-        embed.set_footer(icon_url=ctx.author.avatar_url, text=f"Requested {ctx.author.name}#{ctx.author.discriminator}")
+        embed.set_footer(icon_url=ctx.author.avatar.url, text=f"Requested {ctx.author.name}#{ctx.author.discriminator}")
         await ctx.send(embed=embed)
 
     @commands.command()
