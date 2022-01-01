@@ -140,3 +140,9 @@ bot/db/
 
 # Logging
 discord.log
+
+
+# Snipe files
+bot/src/message.txt
+bot/src/before.txt
+bot/src/after.txt

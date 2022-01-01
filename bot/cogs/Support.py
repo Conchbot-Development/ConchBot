@@ -1,4 +1,4 @@
-import aiosqlite
+import sqlite3
 import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
@@ -31,10 +31,10 @@ class Support(commands.Cog):
     @commands.cooldown(1, 86400, commands.BucketType.user)
     async def report(self, ctx, *, content):
         channel = self.client.get_channel(795711741606101024)
-        db = await aiosqlite.connect('./bot/db/config.db')
-        cursor = await db.cursor()
-        await cursor.execute('SELECT num FROM bugnum WHERE placeholder = 1')
-        result = await cursor.fetchone()
+        db = sqlite3.connect('./bot/db/config.db')
+        cursor = db.cursor()
+        cursor.execute('SELECT num FROM bugnum WHERE placeholder = 1')
+        result = cursor.fetchone()
         num = result[0]+1
         embed = discord.Embed(
             title=f"Bug Report #{num}",
@@ -43,12 +43,12 @@ class Support(commands.Cog):
         embed.add_field(name="Submitted By:", value=ctx.author)
         embed.add_field(name="Bug Description:", value=content)
         embed.set_footer(text=f"User ID: {ctx.author.id}")
-        await cursor.execute(f'UPDATE bugnum SET num = {num} WHERE placeholder = 1')
+        cursor.execute(f'UPDATE bugnum SET num = {num} WHERE placeholder = 1')
         await channel.send(embed=embed)
         await ctx.send("Thank you for the bug report! Our team will identify and fix the problem as soon as possible!")
-        await db.commit()
-        await cursor.close()
-        await db.close()
+        db.commit()
+        cursor.close()
+        db.close()
 
     # @commands.command()
     # @commands.is_owner()
@@ -86,7 +86,7 @@ class Support(commands.Cog):
             )
             embed.add_field(name="Submitted by:", value=ctx.author.name)
             embed.add_field(name="Suggestion:", value=suggestion)
-            embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
+            embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar.url)
             await ctx.send("Your suggestion has been submitted!")
             suggestion_message = await channel.send(embed=embed)
             await suggestion_message.add_reaction("⬆️")

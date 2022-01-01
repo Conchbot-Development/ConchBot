@@ -1,6 +1,6 @@
 import asyncio
 import random
-import aiosqlite
+import sqlite3
 import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
@@ -73,81 +73,70 @@ class Currency(commands.Cog):
 
     def __init__(self, client):
         self.client = client
-
-    async def open_account(self, user):
-        db = await aiosqlite.connect('./bot/db/currency.db')
-        cursor = await db.cursor()
-        dbo = await aiosqlite.connect('./bot/db/tasks.db')
-        cursoro = await dbo.cursor()
+        db = sqlite3.connect('./bot/db/currency.db')
+        cursor = db.cursor()
         
-        await cursor.execute(f'SELECT user_id FROM main WHERE user_id = {user.id}')
-        result1 = await cursor.fetchone()
+        dbo = sqlite3.connect('./bot/db/tasks.db')
+        cursoro = dbo.cursor()
+        
+    async def open_account(self, user):
+        self.cursor.execute(f'SELECT user_id FROM main WHERE user_id = {user.id}')
+        result1 = self.cursor.fetchone()
         if result1 is not None:
-            await cursor.execute(f'CREATE TABLE IF NOT EXISTS u{user.id} (item TEXT, amount INT)')
+            self.cursor.execute(f'CREATE TABLE IF NOT EXISTS u{user.id} (item TEXT, amount INT)')
             return False
         else:
-            await cursor.execute(f'INSERT INTO main (user_id, wallet, bank, items) VALUES ({user.id}, 0, 0, 0)')
-        await cursor.execute(f'CREATE TABLE IF NOT EXISTS u{user.id} (item TEXT, amount INT)')
-        await cursoro.execute(f"CREATE TABLE IF NOT EXISTS u{user.id} (task, status)")
-        await db.commit()
-        await cursor.close()
-        await db.close()
+            self.cursor.execute(f'INSERT INTO main (user_id, wallet, bank, items) VALUES ({user.id}, 0, 0, 0)')
+        self.cursor.execute(f'CREATE TABLE IF NOT EXISTS u{user.id} (item TEXT, amount INT)')
+        self.cursoro.execute(f"CREATE TABLE IF NOT EXISTS u{user.id} (task, status)")
+        self.db.commit()
+        self.cursor.close()
+        self.db.close()
         
-        await dbo.commit()
-        await cursoro.close()
-        await dbo.close()
+        self.dbo.commit()
+        self.cursoro.close()
+        self.dbo.close()
 
     async def update_bank(self, user, amt):
-        db = await aiosqlite.connect('./bot/db/currency.db')
-        cursor = await db.cursor()
+        self.cursor.execute(f'SELECT wallet FROM main WHERE user_id = {user.id}')
+        oldamt = await self.cursor.fetchone()
 
-        
-        await cursor.execute(f'SELECT wallet FROM main WHERE user_id = {user.id}')
-        oldamt = await cursor.fetchone()
-
-        await cursor.execute(f'UPDATE main SET wallet = {oldamt[0]+amt} WHERE user_id = {user.id}')
-        await db.commit()
-        await cursor.close()
-        await db.close()
+        self.cursor.execute(f'UPDATE main SET wallet = {oldamt[0]+amt} WHERE user_id = {user.id}')
+        self.db.commit()
+        self.cursor.close()
+        self.db.close()
     
     async def get_amt(self, user):
-        db = await aiosqlite.connect('./bot/db/currency.db')
-        cursor = await db.cursor()
-
-        await cursor.execute(f'SELECT wallet FROM main WHERE user_id = {user.id}')
-        walamt = await cursor.fetchone()
+        self.cursor.execute(f'SELECT wallet FROM main WHERE user_id = {user.id}')
+        walamt = self.cursor.fetchone()
         
-        await cursor.execute(f'SELECT bank FROM main WHERE user_id = {user.id}')
-        bankamt = await cursor.fetchone()
+        self.cursor.execute(f'SELECT bank FROM main WHERE user_id = {user.id}')
+        bankamt = self.cursor.fetchone()
 
-        await cursor.close()
-        await db.close()
+        self.cursor.close()
+        self.db.close()
 
         return walamt, bankamt
 
     async def item_func(self, user, item, amount=None):
-        db = await aiosqlite.connect("./bot/db/currency.db")
-        cursor = await db.cursor()
-        await cursor.execute(f"SELECT amount FROM u{user.id} WHERE item = '{item}'")
-        oldamount = await cursor.fetchone()
+        self.cursor.execute(f"SELECT amount FROM u{user.id} WHERE item = '{item}'")
+        oldamount = self.cursor.fetchone()
         if oldamount is None:
-            await cursor.execute(f"INSERT INTO u{user.id} (item, amount) VALUES ('{item}', 0)")
-            await cursor.execute(f"SELECT amount FROM u{user.id} WHERE item = '{item}'")
-            oldamount = await cursor.fetchone()
+            self.cursor.execute(f"INSERT INTO u{user.id} (item, amount) VALUES ('{item}', 0)")
+            self.cursor.execute(f"SELECT amount FROM u{user.id} WHERE item = '{item}'")
+            oldamount = self.cursor.fetchone()
         if amount is None:
             return oldamount
         if oldamount is None:
-            await cursor.execute(f"UPDATE u{user.id} SET amount = {amount} WHERE item = '{item}'")
+            self.cursor.execute(f"UPDATE u{user.id} SET amount = {amount} WHERE item = '{item}'")
         else:
-            await cursor.execute(f"UPDATE u{user.id} SET amount = {amount+oldamount[0]} WHERE item = '{item}'")
-        await db.commit()
-        await cursor.close()
-        await db.close()
+            self.cursor.execute(f"UPDATE u{user.id} SET amount = {amount+oldamount[0]} WHERE item = '{item}'")
+        self.db.commit()
+        self.cursor.close()
+        self.db.close()
     
     @commands.command(aliases=['inv', 'bag', 'bal', 'balance'], description="View your items and balance.\n[user] value is optional.")
     async def inventory(self, ctx, user:discord.Member=None):
-        db = await aiosqlite.connect('./bot/db/currency.db')
-        cursor = await db.cursor()
         if user is None:
             await self.open_account(ctx.author)
             user = ctx.author
@@ -161,50 +150,46 @@ class Currency(commands.Cog):
         embed.add_field(name="Wallet Amount:", value=f"{walamt[0]} moners")
         embed.add_field(name="Bank Amount:", value=f"{bankamt[0]} moners")
         embed.add_field(name="Total:", value=f"{bankamt[0]+walamt[0]} moners")
-        await cursor.execute(f'SELECT item FROM u{user.id}')
-        items = await cursor.fetchall()
+        self.cursor.execute(f'SELECT item FROM u{user.id}')
+        items = self.cursor.fetchall()
         for item in items:
-            await cursor.execute(f"SELECT amount FROM u{user.id} WHERE item = '{item[0]}'")
-            amount = await cursor.fetchone()
+            self.cursor.execute(f"SELECT amount FROM u{user.id} WHERE item = '{item[0]}'")
+            amount = self.cursor.fetchone()
             embed.add_field(name=f"{item[0]}s:", value=amount[0])
         await ctx.send(embed=embed)
 
-        await cursor.close()
-        await db.close()
+        self.cursor.close()
+        self.db.close()
         
     @commands.command(aliases=['dep'], description="Deposit moners from your wallet into your bank!")
     async def deposit(self, ctx, amt):
-        db = await aiosqlite.connect('./bot/db/currency.db')
-        cursor = await db.cursor()
         walamt, bankamt = await self.get_amt(ctx.author)
         await self.open_account(ctx.author)
         if amt == "all":
-            await cursor.execute(f'UPDATE main SET wallet = 0 WHERE user_id = {ctx.author.id}')
-            await cursor.execute(f'UPDATE main SET bank = {walamt[0]+bankamt[0]} WHERE user_id = {ctx.author.id}')
+            self.cursor.execute(f'UPDATE main SET wallet = 0 WHERE user_id = {ctx.author.id}')
+            self.cursor.execute(f'UPDATE main SET bank = {walamt[0]+bankamt[0]} WHERE user_id = {ctx.author.id}')
             await ctx.send(f"{walamt[0]} moners have been deposited to your bank.")
         elif int(amt)>walamt[0]:
             await ctx.send("You don't have enough moners in your wallet to deposit that much!")
         elif int(amt)<0:
             await ctx.send("You cannot deposit negative numbers!")
         else:
-            await cursor.execute(f'UPDATE main SET wallet = {walamt[0]-int(amt)} WHERE user_id = {ctx.author.id}')
-            await cursor.execute(f'UPDATE main SET bank = {int(amt)+bankamt[0]} WHERE user_id = {ctx.author.id}')
+            self.cursor.execute(f'UPDATE main SET wallet = {walamt[0]-int(amt)} WHERE user_id = {ctx.author.id}')
+            self.cursor.execute(f'UPDATE main SET bank = {int(amt)+bankamt[0]} WHERE user_id = {ctx.author.id}')
             await ctx.send(f'{int(amt)} moners have been deposited to your bank.')
-        await db.commit()
-        await cursor.close()
-        await db.close()
+        self.db.commit()
+        self.cursor.close()
+        self.db.close()
 
     @commands.command(aliases=["with"], description="Withdraw moners from your bank to your wallet!")
     async def withdraw(self, ctx, amt):
-        db = await aiosqlite.connect('./bot/db/currency.db')
-        cursor = await db.cursor()
         walamt, bankamt = await self.get_amt(ctx.author)
         await self.open_account(ctx.author)
         notenoughmsg = "You don't have enough moners in your bank to withdraw that much!"
         negmsg = "You cannot withdraw negative numbers!"
         if amt == "all":
-            await cursor.execute(f'UPDATE main SET bank = 0 WHERE user_id = {ctx.author.id}')
-            await cursor.execute(f'UPDATE main SET wallet = {walamt[0]+bankamt[0]} WHERE user_id = {ctx.author.id}')
+            self.cursor.execute(f'UPDATE main SET bank = 0 WHERE user_id = {ctx.author.id}')
+            self.cursor.execute(f'UPDATE main SET wallet = {walamt[0]+bankamt[0]} WHERE user_id = {ctx.author.id}')
             successallmsg = "{} moners have been withdrawn your bank."
             await ctx.send(successallmsg.format(bankamt[0]))
         elif int(amt)>bankamt[0]:
@@ -212,19 +197,17 @@ class Currency(commands.Cog):
         elif int(amt)<0:
             await ctx.send(negmsg)
         else:
-            await cursor.execute(f'UPDATE main SET wallet = {walamt[0]+int(amt)} WHERE user_id = {ctx.author.id}')
-            await cursor.execute(f'UPDATE main SET bank = {bankamt[0]-int(amt)} WHERE user_id = {ctx.author.id}')
+            self.cursor.execute(f'UPDATE main SET wallet = {walamt[0]+int(amt)} WHERE user_id = {ctx.author.id}')
+            self.cursor.execute(f'UPDATE main SET bank = {bankamt[0]-int(amt)} WHERE user_id = {ctx.author.id}')
             successmsg = "{} moners have been withdrawn from your bank."
             await ctx.send(successmsg.format(int(amt)))
-        await db.commit()
-        await cursor.close()
-        await db.close()
+        self.db.commit()
+        self.cursor.close()
+        self.db.close()
 
     @commands.command(description="Buy an item from the shop!\n[quantity] value is optional.")
     async def buy(self, ctx, item, quantity=1):
         ff = await Config.check_ff(self, ctx.guild)
-        db = await aiosqlite.connect('./bot/db/currency.db')
-        cursor = await db.cursor()
         check = shop.get(item)
         await self.open_account(ctx.author)
         if quantity < 1:
@@ -234,8 +217,8 @@ class Currency(commands.Cog):
 
         if check is not None:
             price = shop[item].get('price')
-            await cursor.execute(f"SELECT amount FROM u{ctx.author.id} WHERE item = '{item}'")
-            check1 = await cursor.fetchone()
+            self.cursor.execute(f"SELECT amount FROM u{ctx.author.id} WHERE item = '{item}'")
+            check1 = self.cursor.fetchone()
             walamt, bankamt = await self.get_amt(ctx.author)
             notenough0 = "You need to withdraw some bank money to make this purchase."
             if walamt[0] + bankamt[0] < price*quantity:
@@ -245,34 +228,32 @@ class Currency(commands.Cog):
                 await ctx.send(notenough0)
             else:
                 if check1 is not None:
-                    await cursor.execute(f"UPDATE u{ctx.author.id} SET amount = {check1[0] + quantity} WHERE item = '{item}'")
+                    self.cursor.execute(f"UPDATE u{ctx.author.id} SET amount = {check1[0] + quantity} WHERE item = '{item}'")
                 if check1 is None:
-                    await cursor.execute(f"INSERT INTO u{ctx.author.id} (item, amount) VALUES ('{item}', {quantity})")
-                await cursor.execute(f'UPDATE main SET wallet = {walamt[0] - quantity*price} WHERE user_id = {ctx.author.id}')
+                    self.cursor.execute(f"INSERT INTO u{ctx.author.id} (item, amount) VALUES ('{item}', {quantity})")
+                self.cursor.execute(f'UPDATE main SET wallet = {walamt[0] - quantity*price} WHERE user_id = {ctx.author.id}')
                 success = "You just bought {} {} for {}! To use one, please use `cb use {}`."
                 await ctx.send(success.format(quantity, item, price*quantity, item))
         else:
             await ctx.send("You must specify a valid item or item ID. Use `cb shop` to view all items currently available.")
-        await db.commit()
-        await cursor.close()
-        await db.close()
+        self.db.commit()
+        self.cursor.close()
+        self.db.close()
 
     @commands.command(description="Sell an item from your inventory.\n[quantity] value is optional.")
     async def sell(self, ctx, item, quantity=1):
         await self.open_account(ctx.author)
-        db = await aiosqlite.connect('./bot/db/currency.db')
-        cursor = await db.cursor()
         check0 = shop.get(item)
         if check0 is None:
             await ctx.send("That item doesn't exist.")
             return
         sale = shop[item].get('sale')
-        await cursor.execute(f"SELECT item FROM u{ctx.author.id} WHERE item = '{item}'")
-        check = await cursor.fetchone()
-        await cursor.execute(f"SELECT amount FROM u{ctx.author.id} WHERE item = '{item}'")
-        check1 = await cursor.fetchone()
-        await cursor.execute(f'SELECT wallet FROM main WHERE user_id = {ctx.author.id}')
-        oldamt = await cursor.fetchone()
+        self.cursor.execute(f"SELECT item FROM u{ctx.author.id} WHERE item = '{item}'")
+        check = self.cursor.fetchone()
+        self.cursor.execute(f"SELECT amount FROM u{ctx.author.id} WHERE item = '{item}'")
+        check1 = self.cursor.fetchone()
+        self.cursor.execute(f'SELECT wallet FROM main WHERE user_id = {ctx.author.id}')
+        oldamt = self.cursor.fetchone()
         if check == 0:
             await ctx.send("You don't own that item.")
             return
@@ -282,12 +263,12 @@ class Currency(commands.Cog):
             elif quantity > check1[0]:
                 await ctx.send(f"You don't have that many {item}s to sell.")
             else:
-                await cursor.execute(f"UPDATE u{ctx.author.id} SET amount = {check1[0] - quantity} WHERE item = '{item}'")
-                await cursor.execute(f'UPDATE main SET wallet = {oldamt[0]+sale} WHERE user_id = {ctx.author.id}')
+                self.cursor.execute(f"UPDATE u{ctx.author.id} SET amount = {check1[0] - quantity} WHERE item = '{item}'")
+                self.cursor.execute(f'UPDATE main SET wallet = {oldamt[0]+sale} WHERE user_id = {ctx.author.id}')
                 await ctx.send(f"You just sold {quantity} {item}s and gained {sale*quantity}")
-        await db.commit()
-        await cursor.close()
-        await db.close()
+        self.db.commit()
+        self.cursor.close()
+        self.db.close()
 
     @commands.command(description="View the items available for purchase!")
     async def shop(self, ctx):
@@ -367,8 +348,6 @@ class Currency(commands.Cog):
     async def give(self, ctx, user:discord.Member, mode):
         await self.open_account(ctx.author)
         await self.open_account(user)
-        db = await aiosqlite.connect('./bot/db/currency.db')
-        cursor = await db.cursor()
         if user == ctx.author:
             selfmsg = "You can't give items to yourself."
             await ctx.send(selfmsg)
@@ -382,8 +361,8 @@ class Currency(commands.Cog):
             else:
                 await ctx.send(f"How many {msg.content}s would you like to give to {user.name}?")
                 msg0 = await self.client.wait_for('message', check=lambda message: message.author == ctx.author, timeout=10)
-                await cursor.execute(f"SELECT amount FROM u{ctx.author.id} WHERE item = '{msg.content}'")
-                check0 = await cursor.fetchone()
+                self.cursor.execute(f"SELECT amount FROM u{ctx.author.id} WHERE item = '{msg.content}'")
+                check0 = self.cursor.fetchone()
                 if check0 is None:
                     await ctx.send(f"You don't have any {msg.content}s!")
                 elif int(msg0.content) > check0[0]:
@@ -391,15 +370,15 @@ class Currency(commands.Cog):
                 elif int(msg0.content) < 1:
                     await ctx.send("You can't give someone 0 or less items.")
                 else:
-                    await cursor.execute(f"SELECT amount FROM u{user.id} WHERE item = '{msg.content}'")
-                    useramt = await cursor.fetchone()
-                    await cursor.execute(f"UPDATE u{ctx.author.id} SET amount = {check0[0] - int(msg0.content)} WHERE item = '{msg.content}'")
+                    self.cursor.execute(f"SELECT amount FROM u{user.id} WHERE item = '{msg.content}'")
+                    useramt = self.cursor.fetchone()
+                    self.cursor.execute(f"UPDATE u{ctx.author.id} SET amount = {check0[0] - int(msg0.content)} WHERE item = '{msg.content}'")
                     try:
-                        await cursor.execute(f"UPDATE u{user.id} SET amount = {useramt[0] + int(msg0.content)} WHERE item = '{msg.content}'")
+                        self.cursor.execute(f"UPDATE u{user.id} SET amount = {useramt[0] + int(msg0.content)} WHERE item = '{msg.content}'")
                     except:
-                        await cursor.execute(f"INSERT INTO u{user.id} (item, amount) VALUES ('{msg.content}', 0)")
+                        self.cursor.execute(f"INSERT INTO u{user.id} (item, amount) VALUES ('{msg.content}', 0)")
                         useramt = 0
-                        await cursor.execute(f"UPDATE u{user.id} SET amount = {useramt + int(msg0.content)} WHERE item = '{msg.content}'")
+                        self.cursor.execute(f"UPDATE u{user.id} SET amount = {useramt + int(msg0.content)} WHERE item = '{msg.content}'")
                     await ctx.send(f"{msg0.content} {msg.content}s delivered! One last thing - would you like to leave"
                     f"{user.name} a message? If so, reply to this with a message. If not, simply reply with 'no'")
                     msg1 = await self.client.wait_for('message', check=lambda message: message.author == ctx.author, timeout=10)
@@ -434,9 +413,9 @@ class Currency(commands.Cog):
                     await ctx.send(f"{user.name} has been notified of their gift.")
         else:
             await ctx.send("That is an invalid option. Your options are either `item` or `moners.`")
-        await db.commit()
-        await cursor.close()
-        await db.close()
+        self.db.commit()
+        self.cursor.close()
+        self.db.close()
 
     @commands.command(description="Bet your moners on some slots!")
     @commands.cooldown(1, 20, BucketType.user)
@@ -603,10 +582,8 @@ class Currency(commands.Cog):
     @commands.group(aliases=["tasks"], invoke_without_command=True, description="Do a task for a reward of items!")
     async def task(self, ctx):
         await self.open_account(ctx.author)
-        db = await aiosqlite.connect('./bot/db/tasks.db')
-        cursor = await db.cursor()
-        await cursor.execute(f"SELECT task FROM u{ctx.author.id}")
-        result = await cursor.fetchall()
+        self.cursoro.execute(f"SELECT task FROM u{ctx.author.id}")
+        result = self.cursoro.fetchall()
         embed = discord.Embed(title="Available tasks", colour=ctx.author.colour)
         for entry in tasks:
             flag = any(entry in a for a in result)
@@ -617,17 +594,15 @@ class Currency(commands.Cog):
         embed.set_footer(text="To do a task, use 'cb task start {task name}' | ✅ means finished task")
         await ctx.send(embed=embed)
 
-        await cursor.close()
-        await db.close()
+        self.cursoro.close()
+        self.db.close()
 
     @task.command(description="Start a task!")
     async def start(self, ctx, task):
         await self.open_account(ctx.author)
-        db = await aiosqlite.connect('./bot/db/tasks.db')
-        cursor = await db.cursor()
-        await cursor.execute(f"CREATE TABLE IF NOT EXISTS u{ctx.author.id} (task, status)")
-        await cursor.execute(f"SELECT task FROM u{ctx.author.id} WHERE task = '{task}'")
-        result = await cursor.fetchone()
+        self.cursoro.execute(f"CREATE TABLE IF NOT EXISTS u{ctx.author.id} (task, status)")
+        self.cursoro.execute(f"SELECT task FROM u{ctx.author.id} WHERE task = '{task}'")
+        result = self.cursoro.fetchone()
         if result is not None:
             await ctx.send("You have already completed this task!")
             return
@@ -645,10 +620,10 @@ class Currency(commands.Cog):
             except:
                 await self.item_func(ctx.author, tasks[task].get('rewarditem'), tasks[task].get('rewardnum'))
             await ctx.send(tasks[task].get('thank'))
-            await cursor.execute(f"INSERT INTO u{ctx.author.id} (task) VALUES ('{task}')")
-        await db.commit()
-        await cursor.close()
-        await db.close()
+            self.cursoro.execute(f"INSERT INTO u{ctx.author.id} (task) VALUES ('{task}')")
+        self.db.commit()
+        self.cursor.close()
+        self.db.close()
 
     @commands.command(aliases=["lotto"], disabled=True)
     async def lottery(self, ctx, amount:int):
