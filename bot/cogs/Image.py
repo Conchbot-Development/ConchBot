@@ -38,6 +38,8 @@ class Image(commands.Cog):
             return await response.json()
         elif 'text' in data_type:
             return await response.text()
+        elif 'image' in data_type:
+            return response
         else:
             return 400
 
@@ -272,114 +274,66 @@ class Image(commands.Cog):
     async def glass(self, ctx, member: discord.Member=None):
         if not member:
             member = ctx.author
-        async with ctx.typing():
-            async with aiohttp.ClientSession() as glassSession:
-                async with glassSession.get(f'https://some-random-api.ml/canvas/glass?avatar={member.avatar.url_as(format="png", size=1024)}') as glassImage:
-                    imageData = io.BytesIO(await glassImage.read())
-                    
-                    await glassSession.close()
-                    
-                    await ctx.reply(file=discord.File(imageData, 'glass.gif'))
+        glassImage = await self.get_data('image', 'https://some-random-api.ml/canvas/glass')
+        imageData = io.BytesIO(await glassImage.read())
+        
+        await ctx.reply(file=discord.File(imageData, 'glass.gif'))
 
     @commands.command(description="This command makes anyone *inverted*.\n[member] value is optional.")
     async def invert(self, ctx, member: discord.Member=None):
         if not member:
             member = ctx.author
-        async with ctx.typing():
-            async with aiohttp.ClientSession() as invertSession:
-                async with invertSession.get(f'https://some-random-api.ml/canvas/invert?avatar={member.avatar.url_as(format="png", size=1024)}') as invertImage:
-                    if invertImage.status == 200:
-                        imageData = io.BytesIO(await invertImage.read())
-                    
-                        await invertSession.close()
-                    
-                        await ctx.reply(file=discord.File(imageData, 'invert.gif'))
-                    else:
-                        embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=invertImage.status)
-                        await ctx.send(embed=embed)
+        invertImage = await self.get_data('image', 'https://some-random-api.ml/canvas/invert')
+        imageData = io.BytesIO(await invertImage.read())
+        
+        await ctx.reply(file=discord.File(imageData, 'invert.gif'))
 
     @commands.command(description="This command makes anyone *bright*.\n[member] value is optional.")
     async def bright(self, ctx, member: discord.Member=None):
         if not member:
             member = ctx.author
-        async with ctx.typing():
-            async with aiohttp.ClientSession() as brightSession:
-                async with brightSession.get(f'https://some-random-api.ml/canvas/bright?avatar={member.avatar.url_as(format="png", size=1024)}') as brightImage:
-                    if brightImage.status == 200:
-                        imageData = io.BytesIO(await brightImage.read())
-                    
-                        await brightSession.close()
-                    
-                        await ctx.reply(file=discord.File(imageData, 'bright.gif'))
-                    else:
-                        embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=brightImage.status)
-                        await ctx.send(embed=embed)
+        brightImage = await self.get_data('image', 'https://some-random-api.ml/canvas/bright')
+        imageData = io.BytesIO(await brightImage.read())
+        
+        await ctx.reply(file=discord.File(imageData, 'bright.gif'))
 
     @commands.command(description="This command converts rgb to hex")
     async def hex(self, ctx, hex):
         if not hex:
             await ctx.send("Please input a hex value")
-        async with ctx.typing():
-            async with aiohttp.ClientSession() as hexSession:
-                async with hexSession.get(f'https://some-random-api.ml/canvas/colorviewer?hex={hex}') as hexImage:
-                    if hexImage.status == 200:
-                        imageData = io.BytesIO(await hexImage.read())
-                    
-                        await hexSession.close()
-                    
-                        await ctx.reply(file=discord.File(imageData, 'hex.gif'))
-                    else:
-                        embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=hexImage.status)
-                        await ctx.send(embed=embed) 
+        hexImage = await self.get_data('image', f'https://some-random-api.ml/canvas/colorviewer?hex={hex}')
+        imageData = io.BytesIO(await hexImage.read())
+    
+        await ctx.reply(file=discord.File(imageData, 'hex.gif'))
 
     @commands.command(description="Make a YouTube comment!")
     async def comment(self, ctx, member: discord.Member, comment:str):
         member_avatar = member.avatar.url_as(format="png", size=256)
         api_link = f"https://some-random-api.ml/canvas/youtube-comment?avatar={member_avatar}&comment={comment}&username={member.name}"
 
-        async with ctx.typing():
-            async with aiohttp.ClientSession() as youtubeSession:
-                async with youtubeSession.get(api_link) as youtubeComment:
-                    if youtubeComment.status == 200:
-                        imageData = io.BytesIO(await youtubeComment.read())
-                    
-                        await youtubeSession.close()
-                    
-                        await ctx.reply(file=discord.File(imageData, 'youtube.gif'))
-                    else:
-                        embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=youtubeComment.status)
-                        await ctx.send(embed=embed)
+        youtubeComment = await self.get_data('image', api_link)
+        imageData = io.BytesIO(await youtubeComment.read())
+
+        await ctx.reply(file=discord.File(imageData, 'youtube.gif'))
 
     @commands.command(description="Blur an avatar.\n[member] value is optional.")
     async def blur(self, ctx, member: discord.Member=None):
         if not member:
             member = ctx.author
-        async with ctx.typing():
-            async with aiohttp.ClientSession() as blurSession:
-                async with blurSession.get(f'https://some-random-api.ml/canvas/blur?avatar={member.avatar.url_as(format="png", size=1024)}') as blurImage:
-                    if blurImage.status == 200:
-                        imageData = io.BytesIO(await blurImage.read())
-
-                        await blurSession.close()
-                    else:
-                        embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=blurImage.status)
-                        await ctx.send(embed=embed)
+        blurImage = await self.get_data('image', 'https://some-random-api.ml/canvas/blur?avatar={}'.format(member.avatar.url_as(format="png", size=1024)))
+        imageData = io.BytesIO(await blurImage.read())
+        
+        
         await ctx.reply(file=discord.File(imageData, 'blur.gif'))
 
     @commands.command(description="Pixelate an avatar.\n[member] value is optional.")
     async def pixel(self, ctx, member: discord.Member=None):
         if not member:
             member = ctx.author
-        async with ctx.typing():
-            async with aiohttp.ClientSession() as pixelSession:
-                async with pixelSession.get(f'https://some-random-api.ml/canvas/pixelate?avatar={member.avatar.url_as(format="png", size=1024)}') as pixelImage:
-                    if pixelImage.status == 200:
-                        imageData = io.BytesIO(await pixelImage.read())
-
-                        await pixelSession.close()
-                    else:
-                        embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=pixelImage.status)
-                        await ctx.send(embed=embed)
+        pixelImage = await self.get_data('image', 'https://some-random-api.ml/canvas/pixelate?avatar={}'.format(member.avatar.url_as(format="png", size=1024)))
+        imageData = io.BytesIO(await pixelImage.read())
+        
+        
         await ctx.reply(file=discord.File(imageData, 'pixel.gif'))
 
     @commands.command(description="Returns an image of an anime pat!")
@@ -388,13 +342,8 @@ class Image(commands.Cog):
         pat_image = "https://some-random-api.ml/animu/pat"
 
         async with ctx.typing():
-            async with aiohttp.ClientSession.get("GET", pat_image, headers={}) as response:
-                if response.status == 200:
-                    api = await response.json()
-                    image = api["link"]
-                else:
-                    embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=response.status)
-                    await ctx.send(embed=embed)
+            api = await self.get_data('json', pat_image)
+            image = api['link']
 
             await ctx.send(image)
 
@@ -402,69 +351,42 @@ class Image(commands.Cog):
     async def triggered(self, ctx, member: discord.Member=None):
         if not member:
             member = ctx.author
-        async with ctx.typing():
-            async with aiohttp.ClientSession() as wastedSession:
-                async with wastedSession.get(f'https://some-random-api.ml/canvas/triggered?avatar={member.avatar.url_as(format="png", size=1024)}') as wastedImage:
-                    if wastedImage.status == 200:
-                        imageData = io.BytesIO(await wastedImage.read())
-                    
-                        await wastedSession.close()
-                    
-                        await ctx.reply(file=discord.File(imageData, 'triggered.gif'))
-                    else:
-                        embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=wastedImage.status)
-                        await ctx.send(embed=embed)
+            
+        wastedImage = await self.get_data('image', 'https://some-random-api.ml/canvas/triggered?avatar={}'.format(member.avatar.url_as(format="png", size=1024)))
+        imageData = io.BytesIO(await wastedImage.read())
+        
+        
+        await ctx.reply(file=discord.File(imageData, 'triggered.gif'))
 
     @commands.command(description="This command makes you gay, basically.\n[member] value is optional.")
     async def rainbow(self, ctx, member: discord.Member=None):
         if not member:
             member = ctx.author
-        async with ctx.typing():
-            async with aiohttp.ClientSession() as gaySession:
-                async with gaySession.get(f'https://some-random-api.ml/canvas/gay?avatar={member.avatar.url_as(format="png", size=1024)}') as gayImage:
-                    if gayImage.status == 200:
-                        imageData = io.BytesIO(await gayImage.read())
-                    
-                        await gaySession.close()
-                    
-                        await ctx.reply(file=discord.File(imageData, 'gay.gif'))
-                    else:
-                        embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=gayImage.status)
-                        await ctx.send(embed=embed)
+        gayImage = await self.get_data('image', 'https://some-random-api.ml/canvas/rainbow?avatar={}'.format(member.avatar.url_as(format="png", size=1024)))
+        imageData = io.BytesIO(await gayImage.read())
+        
+        await ctx.reply(file=discord.File(imageData, 'gay.gif'))
+        
 
     @commands.command(aliases=['passed'], description="What you see when you vote for ConchBot on Top.gg\n[member] value is optional.")
     async def missionpassed(self, ctx, member: discord.Member=None):
         if not member:
             member = ctx.author
-        async with ctx.typing():
-            async with aiohttp.ClientSession() as passSession:
-                async with passSession.get(f'https://some-random-api.ml/canvas/passed?avatar={member.avatar.url_as(format="png", size=1024)}') as passedImage:
-                    if passedImage.status == 200:
-                        imageData = io.BytesIO(await passedImage.read())
-                    
-                        await passSession.close()
-                    
-                        await ctx.reply(file=discord.File(imageData, 'passed.gif'))
-                    else:
-                        embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=passedImage.status)
-                        await ctx.send(embed=embed)
+            
+        passedImage = await self.get_data('image', 'https://some-random-api.ml/canvas/mission-passed?avatar={}'.format(member.avatar.url_as(format="png", size=1024)))
+        imageData = io.BytesIO(await passedImage.read())
+        
+        await ctx.reply(file=discord.File(imageData, 'passed.gif'))
+
 
     @commands.command(description="You're wasted.\n[member] value is optional.")
     async def wasted(self, ctx, member: discord.Member=None):
         if not member:
             member = ctx.author
-        async with ctx.typing():
-            async with aiohttp.ClientSession() as wastedSession:
-                async with wastedSession.get(f'https://some-random-api.ml/canvas/wasted?avatar={member.avatar.url_as(format="png", size=1024)}') as wastedImage:
-                    if wastedImage.status == 200:
-                        imageData = io.BytesIO(await wastedImage.read())
+        wastedImage = await self.get_data('image', 'https://some-random-api.ml/canvas/wasted?avatar={}'.format(member.avatar.url_as(format="png", size=1024)))
+        imageData = io.BytesIO(await wastedImage.read())
                     
-                        await wastedSession.close()
-                    
-                        await ctx.reply(file=discord.File(imageData, 'wasted.gif'))
-                    else:
-                        embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=wastedImage.status)
-                        await ctx.send(embed=embed)
+        await ctx.reply(file=discord.File(imageData, 'wasted.gif'))
 
     @commands.command(description="Get an anime wink!")
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -472,13 +394,8 @@ class Image(commands.Cog):
         wink_image = 'https://some-random-api.ml/animu/wink'
 
         async with ctx.typing():
-            async with aiohttp.ClientSession().get("GET", wink_image, headers={}) as response:
-                if response.status == 200:
-                    api = await response.json()
-                    image = api["link"]
-                else:
-                    embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=response.status)
-                    await ctx.send(embed=embed)
+            api = await self.get_data('json', wink_image)
+            image = api['link']
             await ctx.send(image)
     
     @commands.command(description="Get an anime hug.")
@@ -487,13 +404,8 @@ class Image(commands.Cog):
         hug_image = 'https://some-random-api.ml/animu/hug'
 
         async with ctx.typing():
-            async with aiohttp.ClientSession().get("GET", hug_image, headers={}) as response:
-                if response.status == 200:
-                    api = await response.json()
-                    image = api["link"]
-                else:
-                    embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=response.status)
-                    await ctx.send(embed=embed)
+            api = await self.get_data('json', hug_image)
+            image = api['link']
             await ctx.send(image)
 
     @commands.command(description="Get a random picture of Pikachu!")
@@ -502,13 +414,8 @@ class Image(commands.Cog):
         pikachu_image = 'https://some-random-api.ml/img/pikachu'
 
         async with ctx.typing():
-            async with aiohttp.ClientSession().get("GET", pikachu_image, headers={}) as response:
-                if response.status == 200:
-                    api = await response.json()
-                    image = api["link"]
-                else:
-                    embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=response.status)
-                    await ctx.send(embed=embed)
+            api = await self.get_data('json', pikachu_image)
+            image = api['link']
             await ctx.send(image)
 
 def setup(client):
