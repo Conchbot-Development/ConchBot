@@ -4,10 +4,10 @@ import sqlite3
 import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
-from dotenv import load_dotenv
+
 from .BotConfig import Config
 
-env = load_dotenv()
+
 
 shop = {
     "watch" : {

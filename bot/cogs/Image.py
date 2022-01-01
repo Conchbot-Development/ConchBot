@@ -9,10 +9,10 @@ import discord
 from bot.cogs.utils.embed import Embeds
 import PIL.Image
 from discord.ext import commands
-from dotenv import load_dotenv
+
 from PIL import ImageDraw, ImageFont
 
-env = load_dotenv()
+
 
 eupvote = '<:Upvote:822667264406192198>'
 edownvote = '<:Downvote:822667263571525664>'

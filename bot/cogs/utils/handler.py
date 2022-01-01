@@ -2,12 +2,12 @@ import discord
 from discord.ext import commands
 import sys
 import asyncio
-from dotenv import load_dotenv
+
 import os
 import datetime
 from bot.cogs.utils.embed import Embeds
 
-env = load_dotenv()
+
 
 class CommandErrorHandler(commands.Cog):
     def __init__(self, client):
@@ -60,7 +60,7 @@ class CommandErrorHandler(commands.Cog):
             except:
                 print(error, file=sys.stderr)
         else:
-            creator = await self.client.fetch_user(os.getenv("OWNER_ID"))
+            creator = await self.client.fetch_user(self.client.getenv("OWNER_ID"))
             embed = discord.Embed(title="Oh no. An error occurred")
             embed.add_field(
                 name=f"In {ctx.command.qualified_name}:", 

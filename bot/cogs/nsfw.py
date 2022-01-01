@@ -1,20 +1,13 @@
 import discord
 from discord.ext import commands, menus
-from dotenv import load_dotenv
+
 import asyncpraw
 import os
 import random
 import rule34
 from hentai import Hentai, Format, Utils
 
-load_dotenv('.env')
-
 rule34 = rule34.Rule34()
-reddit = asyncpraw.Reddit(client_id = os.getenv("redditid"),
-            client_secret = os.getenv("redditsecret"),
-            username = "UnsoughtConch",
-            password = os.getenv('redditpassword'),
-            user_agent = "ConchBotPraw")
 
 class NSFW(commands.Cog):
 
@@ -24,11 +17,16 @@ class NSFW(commands.Cog):
 
     def __init__(self, client):
         self.client = client
+        reddit = asyncpraw.Reddit(client_id = self.client.getenv("redditid"),
+            client_secret = self.client.getenv("redditsecret"),
+            username = "UnsoughtConch",
+            password = self.client.getenv('redditpassword'),
+            user_agent = "ConchBotPraw")
 
     @commands.group(invoke_without_command=True, description="Get a hentai image from r/hentai.")
     async def hentai(self, ctx):
         msg = await ctx.send("Getting your porn...")
-        subreddit = await reddit.subreddit('hentai')
+        subreddit = await self.reddit.subreddit('hentai')
         top = subreddit.top(limit=50)
         all_subs = []
 
@@ -75,7 +73,7 @@ class NSFW(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user) 
     async def porn(self, ctx):
         msg = await ctx.send("Getting your porn...")
-        subreddit = await reddit.subreddit('porn')
+        subreddit = await self.subreddit('porn')
         top = subreddit.top(limit=50)
         all_subs = []
 
@@ -94,7 +92,7 @@ class NSFW(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def boobs(self, ctx):
         msg = await ctx.send("Getting your porn...")
-        subreddit = await reddit.subreddit('boobs')
+        subreddit = await self.reddit.subreddit('boobs')
         top = subreddit.top(limit=50)
         all_subs = []
 
@@ -113,7 +111,7 @@ class NSFW(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user) 
     async def boobdrop(self, ctx):
         msg = await ctx.send("Getting your porn...")
-        subreddit = await reddit.subreddit('tittydrop')
+        subreddit = await self.reddit.subreddit('tittydrop')
         top = subreddit.top(limit=50)
         all_subs = []
 
@@ -138,7 +136,7 @@ class NSFW(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user) 
     async def gay(self, ctx):
         msg = await ctx.send("Getting your porn...")
-        subreddit = await reddit.subreddit('gayporn')
+        subreddit = await self.reddit.subreddit('gayporn')
         top = subreddit.top(limit=50)
         all_subs = []
 
@@ -157,7 +155,7 @@ class NSFW(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user) 
     async def lesbian(self, ctx):
         msg = await ctx.send("Getting your porn...")
-        subreddit = await reddit.subreddit('lesbians')
+        subreddit = await self.reddit.subreddit('lesbians')
         top = subreddit.top(limit=50)
         all_subs = []
 
@@ -176,7 +174,7 @@ class NSFW(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user) 
     async def overwatch(self, ctx):
         msg = await ctx.send("Getting your porn...")
-        subreddit = await reddit.subreddit('overwatch_porn')
+        subreddit = await self.reddit.subreddit('overwatch_porn')
         top = subreddit.top(limit=50)
         all_subs = []
 
@@ -195,7 +193,7 @@ class NSFW(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user) 
     async def sfm(self, ctx):
         msg = await ctx.send("Getting your porn...")
-        subreddit = await reddit.subreddit('sfmcompileclub')
+        subreddit = await self.reddit.subreddit('sfmcompileclub')
         top = subreddit.top(limit=50)
         all_subs = []
 
@@ -214,7 +212,7 @@ class NSFW(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user) 
     async def pussy(self, ctx):
         msg = await ctx.send("Getting your porn...")
-        subreddit = await reddit.subreddit('pussy')
+        subreddit = await self.reddit.subreddit('pussy')
         top = subreddit.top(limit=50)
         all_subs = []
 
@@ -233,7 +231,7 @@ class NSFW(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user) 
     async def waifu(self, ctx):
         msg = await ctx.send("Getting your porn...")
-        subreddit = await reddit.subreddit('waifusgonewild')
+        subreddit = await self.reddit.subreddit('waifusgonewild')
         top = subreddit.top(limit=50)
         all_subs = []
 
@@ -253,7 +251,7 @@ class NSFW(commands.Cog):
     async def rule34(self, ctx, *, query=None):
         if query is None:
             msg = await ctx.send("Getting your porn...")
-            subreddit = await reddit.subreddit('rule34')
+            subreddit = await self.reddit.subreddit('rule34')
             top = subreddit.top(limit=50)
             all_subs = []
 
@@ -295,7 +293,7 @@ class NSFW(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user) 
     async def futanari(self, ctx):
         msg = await ctx.send("Getting your porn...")
-        subreddit = await reddit.subreddit('futanari')
+        subreddit = await self.reddit.subreddit('futanari')
         top = subreddit.top(limit=50)
         all_subs = []
 
@@ -314,7 +312,7 @@ class NSFW(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user) 
     async def bdsm(self, ctx):
         msg = await ctx.send("Getting your porn...")
-        subreddit = await reddit.subreddit('bdsm')
+        subreddit = await self.reddit.subreddit('bdsm')
         top = subreddit.top(limit=50)
         all_subs = []
 

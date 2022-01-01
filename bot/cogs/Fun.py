@@ -8,7 +8,7 @@ import discord
 from discord.ext.commands.cooldowns import BucketType
 import httpx
 from discord.ext import commands, menus
-from dotenv import load_dotenv
+
 import os
 import urllib
 import sqlite3
@@ -19,15 +19,7 @@ import requests as req
 import asyncio
 from bot.cogs.utils.pagination import Paginator
 
-load_dotenv('.env')
 
-reddit = asyncpraw.Reddit(client_id = os.getenv("redditid"),
-                    client_secret = os.getenv("redditsecret"),
-                    username = "UnsoughtConch",
-                    password = os.getenv('redditpassword'),
-                    user_agent = "ConchBotPraw")
-
-rs = randomstuff.AsyncClient(api_key = os.getenv("aiapikey"))
 
 class Fun(commands.Cog):
     '''
@@ -37,6 +29,13 @@ class Fun(commands.Cog):
     def __init__(self, client):
         self.client = client
         self.time = datetime.datetime.utcnow().strftime('%Y:%m:%d %H:%M')
+        reddit = asyncpraw.Reddit(client_id = self.client.getenv("redditid"),
+                    client_secret = self.client.getenv("redditsecret"),
+                    username = "ConchBot",
+                    password = self.client.getenv('redditpassword'),
+                    user_agent = "ConchBotPraw")
+
+        rs = randomstuff.AsyncClient(api_key = self.client.getenv("aiapikey"))
         
     async def category_convert(self, category):
         cat = category.lower()
@@ -73,8 +72,8 @@ class Fun(commands.Cog):
             cursor.close()
             db.close()
 
-            folderid = os.getenv("GOFILE_FOLDER_ID")
-            token = os.getenv("GOFILE_TOKEN")
+            folderid = self.client.getenv("GOFILE_FOLDER_ID")
+            token = self.client.getenv("GOFILE_TOKEN")
 
             async with aiohttp.ClientSession() as session:
                 async with session.put("https://api.gofile.io/createFolder", data=f'parentFolderId={folderid}&token={token}&folderName={user_id}') as resp:
@@ -112,12 +111,12 @@ class Fun(commands.Cog):
         if message.channel.name == "conchchat":
             try:
                 await message.channel.trigger_typing()
-                aimsg = rs.get_ai_response(message.content)
+                aimsg = self.rs.get_ai_response(message.content)
                 message = aimsg["message"]
                 await message.reply(message)
             except AttributeError:
                 await message.channel.trigger_typing()
-                aimsg = await rs.get_ai_response(message.content)
+                aimsg = await self.rs.get_ai_response(message.content)
                 message = aimsg
                 await message.reply(message)
             except httpx.ReadTimeout:
@@ -171,7 +170,7 @@ class Fun(commands.Cog):
     async def reddit(self, ctx, subreddit):
         message = await ctx.send("This may take a hot minute... Sit tight!")
         try:
-            subreddit = await reddit.subreddit(subreddit)
+            subreddit = await self.reddit.subreddit(subreddit)
             top = subreddit.top(limit=50)
             all_subs = []
 
@@ -229,7 +228,7 @@ class Fun(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user) 
     async def joke(self, ctx):
         msg = await ctx.send("Grabbing your joke...")
-        subreddit = await reddit.subreddit("jokes")
+        subreddit = await self.reddit.subreddit("jokes")
         top = subreddit.top(limit=50)
         all_subs = []
 

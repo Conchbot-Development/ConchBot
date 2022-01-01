@@ -6,13 +6,11 @@ from discord.ext import commands
 import sqlite3
 import inspect
 import os
-from dotenv import load_dotenv
 import time
 from jishaku.codeblocks import codeblock_converter
 
 start_time = time.time()
 
-env = load_dotenv()
 
 class Utility(commands.Cog):
     def __init__(self, client):
@@ -119,10 +117,10 @@ class Utility(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.channel)
     async def source(self, ctx, *, command_name=None):
         # Source code of ConchBot github page
-        conchbot_source_code_url = os.getenv("GITHUB_REPO_LINK")
+        conchbot_source_code_url = self.client.getenv("GITHUB_REPO_LINK")
 
         # Branch of ConchBot github page
-        branch = os.getenv("GITHUB_REPO_BRANCH")
+        branch = self.client.getenv("GITHUB_REPO_BRANCH")
 
         embed = discord.Embed(title="ConchBot Source Code")
 

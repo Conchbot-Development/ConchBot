@@ -2,12 +2,12 @@ import sqlite3
 import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
-from dotenv import load_dotenv
+
 import os
 from bot.cogs.Currency import Currency
 
 
-env = load_dotenv()
+
 
 
 class Support(commands.Cog):

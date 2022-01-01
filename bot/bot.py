@@ -3,7 +3,7 @@ import os
 from itertools import cycle
 import discord
 from discord.ext import commands, tasks
-from dotenv import load_dotenv
+
 from datetime import datetime
 from bot.cogs.Currency import Currency
 import time
@@ -11,12 +11,12 @@ from bot.cogs.utils.embed import Embeds
 import logging
 from disgames import register_commands
 import aiohttp
+from bot.cogs.utils.config import Config
 
 def get_prefix(client, message):
     prefixes = ['cb ', 'cb!', 'cB ', 'CB ', 'Cb ']
     return commands.when_mentioned_or(*prefixes)(client, message)
 
-load_env = load_dotenv()
 
 initial_extensions = [
     "bot.cogs.BotConfig",
@@ -44,7 +44,7 @@ class ConchBot(commands.Bot):
         os.environ['JISHAKU_RETAIN'] = "True"
         for cog in initial_extensions:
             self.load_extension(cog)
-        if os.getenv("DEBUG") == "True":      
+        if self.getenv("DEBUG") == "True":      
             logging.basicConfig(level=logging.INFO)
             logger = logging.getLogger('discord')
             logger.setLevel(logging.DEBUG)
@@ -99,11 +99,21 @@ class ConchBot(commands.Bot):
             await ctx.send(embed=embed)
         await Currency.open_account(self, ctx.author) 
 
+    @property
+    def Config(self):
+        return Config()
 
     def run(self):
         time.sleep(2)
         print("Running bot...")
 
-        TOKEN = os.getenv("TOKEN")
+        TOKEN = self.getenv("TOKEN")
         
         super().run(TOKEN, reconnect=True)
+
+
+    def getenv(self, var):
+        return self.Config.__getitem__(var)
+    
+    
+    
