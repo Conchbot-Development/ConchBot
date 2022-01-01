@@ -17,6 +17,7 @@ import datetime
 import randomstuff
 import requests as req
 import asyncio
+from bot.cogs.utils.pagination import Paginator
 
 load_dotenv('.env')
 
@@ -523,7 +524,8 @@ class Fun(commands.Cog):
             author = api["author"]
             lyrics = api["lyrics"]
 
-            embed = discord.Embed(title=f"{title} by {author}", description=lyrics)
+            embed = discord.Embed(title=f"{title} by {author}", description=lyrics, colour=discord.Color.yellow())
+            embed.set_footer(text='Page 1/1')
             try:
                 await ctx.send(embed=embed)
             except:
@@ -531,28 +533,26 @@ class Fun(commands.Cog):
 
                 page_count = lyrics / 4096
 
-                if '.' in str(page_count):
-                    page_count = int(page_count) + 1
+                if (
+                    '.' in str(page_count)
+                    and str(page_count).split('.')[0] == 0
+                    or str(page_count).split('.')[1] == 0
+                ):
+                    page_count = 1
 
                 num = 4096
-                for i in range(page_count):
-                    embed = discord.Embed(title=f"{title} by {author}", description=lyrics[:num])
-                    embed.set_footer(text=f"Page {i}/{page_count}")
+                for _ in range(int(page_count) + 1):
+                    embed = discord.Embed(title=f"{title} by {author}", description=lyrics[:num], colour=discord.Color.yellow())
                     embeds.append(embed)
                     num += 4096
 
+                if len(embeds) == 1:
+                    return await ctx.send(embed=embeds[0])
 
-                paginator = menus.Paginator(pages=embeds, show_disabled=False, show_indicator=True)
+                for embed in embeds:
+                    embed.set_footer(text=f"Page {embeds.index(embed) + 1}/{len(embeds)}")
 
-                paginator.customize_button("next", button_label=">", button_style=discord.ButtonStyle.green)
-                paginator.customize_button("prev", button_label="<", button_style=discord.ButtonStyle.green)
-                paginator.customize_button("first", button_label="<<", button_style=discord.ButtonStyle.blurple)
-                paginator.customize_button("last", button_label=">>", button_style=discord.ButtonStyle.blurple)
-
-                await paginator.send(ctx, ephemeral=False)
-
-
-
+                await ctx.send(embed=embeds[0], view=Paginator(ctx, embeds))
         except:
             embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=400)
             await ctx.send(embed=embed)
@@ -568,28 +568,36 @@ class Fun(commands.Cog):
             embeds = []
             word_name = api["word"]
             word_definition = api["definition"]
-    
-            page_count = word_definition / 4096
-            num = 4096        
-            for i in range(page_count):
-                embed = discord.Embed(title=f"{word_name} Definition", description=word_definition[:num])
-                embed.set_footer(text=f"Page {i}/{page_count}")
+
+            page_count = len(word_definition) / 4096
+            if (
+                '.' in str(page_count)
+                and str(page_count).split('.')[0] == 0
+                or str(page_count).split('.')[1] == 0
+            ):
+                page_count = 1
+
+            if int(page_count) == 0:
+                embed = discord.Embed(title=f"{word_name}", description=word_definition)
                 embeds.append(embed)
-                num += 4096
+            else:
+                num = 4096
 
-            await ctx.defer()
+                for _ in range(int(page_count) + 1):
+                    embed = discord.Embed(title=f"{word_name} Definition", description=word_definition[:num])
+                    embeds.append(embed)
+                    num += 4096
 
-            paginator = menus.Paginator(pages=embeds, show_disabled=False, show_indicator=True)
+            for embed in embeds:
+                embed.set_footer(text=f"Page {embeds.index(embed) + 1}/{len(embeds)}")
 
-            paginator.customize_button("next", button_label=">", button_style=discord.ButtonStyle.green)
-            paginator.customize_button("prev", button_label="<", button_style=discord.ButtonStyle.green)
-            paginator.customize_button("first", button_label="<<", button_style=discord.ButtonStyle.blurple)
-            paginator.customize_button("last", button_label=">>", button_style=discord.ButtonStyle.blurple)
-
-            await paginator.send(ctx, ephemeral=False)
+            if len(embeds) == 1:
+                return await ctx.send(embed=embeds[0])
+            await ctx.send(embed=embeds[0], view=Paginator(ctx, embeds))
         except:
             embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=400)
             await ctx.send(embed=embed)
+        
 
     @commands.command(description="Returns a real-looking Discord bot token.")
     @commands.cooldown(1, 5, commands.BucketType.user)
