@@ -203,7 +203,7 @@ class Image(commands.Cog):
             member = ctx.author
 
         wanted = Image.open("bot/src/MemeTemplates/wanted.jpg")
-        asset = member.avatar.url_as(size=128)
+        asset = member.avatar.replace(size=128)
         data = BytesIO(await asset.read())
         pfp = Image.open(data)
         pfp = pfp.resize((308, 306))
@@ -308,7 +308,7 @@ class Image(commands.Cog):
 
     @commands.command(description="Make a YouTube comment!")
     async def comment(self, ctx, member: discord.Member, comment:str):
-        member_avatar = member.avatar.url_as(format="png", size=256)
+        member_avatar = member.avatar.replace(format="png", size=256)
         api_link = f"https://some-random-api.ml/canvas/youtube-comment?avatar={member_avatar}&comment={comment}&username={member.name}"
 
         youtubeComment = await self.get_data('image', api_link)
@@ -320,7 +320,7 @@ class Image(commands.Cog):
     async def blur(self, ctx, member: discord.Member=None):
         if not member:
             member = ctx.author
-        blurImage = await self.get_data('image', 'https://some-random-api.ml/canvas/blur?avatar={}'.format(member.avatar.url_as(format="png", size=1024)))
+        blurImage = await self.get_data('image', 'https://some-random-api.ml/canvas/blur?avatar={}'.format(member.avatar.replace(format="png", size=1024)))
         imageData = io.BytesIO(await blurImage.read())
         
         
@@ -330,7 +330,7 @@ class Image(commands.Cog):
     async def pixel(self, ctx, member: discord.Member=None):
         if not member:
             member = ctx.author
-        pixelImage = await self.get_data('image', 'https://some-random-api.ml/canvas/pixelate?avatar={}'.format(member.avatar.url_as(format="png", size=1024)))
+        pixelImage = await self.get_data('image', 'https://some-random-api.ml/canvas/pixelate?avatar={}'.format(member.avatar.replace(format="png", size=1024)))
         imageData = io.BytesIO(await pixelImage.read())
         
         
@@ -352,28 +352,18 @@ class Image(commands.Cog):
         if not member:
             member = ctx.author
             
-        wastedImage = await self.get_data('image', 'https://some-random-api.ml/canvas/triggered?avatar={}'.format(member.avatar.url_as(format="png", size=1024)))
+        wastedImage = await self.get_data('image', 'https://some-random-api.ml/canvas/triggered?avatar={}'.format(member.avatar.replace(format="png", size=1024)))
         imageData = io.BytesIO(await wastedImage.read())
         
         
         await ctx.reply(file=discord.File(imageData, 'triggered.gif'))
-
-    @commands.command(description="This command makes you gay, basically.\n[member] value is optional.")
-    async def rainbow(self, ctx, member: discord.Member=None):
-        if not member:
-            member = ctx.author
-        gayImage = await self.get_data('image', 'https://some-random-api.ml/canvas/rainbow?avatar={}'.format(member.avatar.url_as(format="png", size=1024)))
-        imageData = io.BytesIO(await gayImage.read())
-        
-        await ctx.reply(file=discord.File(imageData, 'gay.gif'))
-        
 
     @commands.command(aliases=['passed'], description="What you see when you vote for ConchBot on Top.gg\n[member] value is optional.")
     async def missionpassed(self, ctx, member: discord.Member=None):
         if not member:
             member = ctx.author
             
-        passedImage = await self.get_data('image', 'https://some-random-api.ml/canvas/mission-passed?avatar={}'.format(member.avatar.url_as(format="png", size=1024)))
+        passedImage = await self.get_data('image', 'https://some-random-api.ml/canvas/mission-passed?avatar={}'.format(member.avatar.replace(format="png", size=1024)))
         imageData = io.BytesIO(await passedImage.read())
         
         await ctx.reply(file=discord.File(imageData, 'passed.gif'))
@@ -383,7 +373,7 @@ class Image(commands.Cog):
     async def wasted(self, ctx, member: discord.Member=None):
         if not member:
             member = ctx.author
-        wastedImage = await self.get_data('image', 'https://some-random-api.ml/canvas/wasted?avatar={}'.format(member.avatar.url_as(format="png", size=1024)))
+        wastedImage = await self.get_data('image', 'https://some-random-api.ml/canvas/wasted?avatar={}'.format(member.avatar.replace(format="png", size=1024)))
         imageData = io.BytesIO(await wastedImage.read())
                     
         await ctx.reply(file=discord.File(imageData, 'wasted.gif'))
