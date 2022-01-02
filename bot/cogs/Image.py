@@ -325,6 +325,15 @@ class Image(commands.Cog):
         
         
         await ctx.reply(file=discord.File(imageData, 'blur.gif'))
+        
+    @commands.command(description="This command makes you gay, basically.\n[member] value is optional.", aliases=['gay'])
+    async def rainbow(self, ctx, member: discord.Member=None):
+        if not member:
+            member = ctx.author
+        gayImage = await self.get_data('image', 'https://some-random-api.ml/canvas/gay?avatar={}'.format(member.avatar.url_as(format="png", size=1024)))
+        imageData = io.BytesIO(await gayImage.read())
+
+        await ctx.reply(file=discord.File(imageData, 'gay.gif'))
 
     @commands.command(description="Pixelate an avatar.\n[member] value is optional.")
     async def pixel(self, ctx, member: discord.Member=None):
