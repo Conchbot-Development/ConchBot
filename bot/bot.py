@@ -24,7 +24,6 @@ initial_extensions = [
     "bot.cogs.Fun",
     "bot.cogs.Help",
     "bot.cogs.Image",
-    "bot.cogs.nsfw",
     "bot.cogs.Support",
     "bot.cogs.Utility"
 ]
