@@ -19,7 +19,6 @@ charset-normalizer==2.0.9
 chess==1.8.0
 click==8.0.3
 colorama==0.4.4
-discord-ext-menus @ git+https://github.com/Rapptz/discord-ext-menus@fbb8803779373357e274e1540b368365fd9d8074
 disgames @ git+https://github.com/Andrewthederp/disgames@9ac02d633723000afa6dfd0c606798c4882be15a
 frozenlist==1.2.0
 h11==0.12.0
