@@ -30,6 +30,8 @@ GITHUB_REPO_BRANCH=master
 SNIPE_UPLOAD_CHANNEL= #your channel id here
 ```
 
+See [.env.example](https://github.com/Conchbot-Development/ConchBot/blob/master/.env.example)
+
 Run `pip3 install -r requirements.txt` in your terminal
 
 Then run `launcher.py`
