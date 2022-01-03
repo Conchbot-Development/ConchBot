@@ -34,21 +34,6 @@ Run `pip3 install -r requirements.txt` in your terminal
 Then run `launcher.py`
 
 
-## Contribute
-
-Contributing is easy.
-
-Steps:
-1. Create a fork
-
-2. Test your code out
-
-3. Create a PR (Pull Request)
-
-We'll look into the the PR
-
-
-
 ## Support
 
 You can reach out to us in a issue. By creating a issue. 
