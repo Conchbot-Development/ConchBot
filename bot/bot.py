@@ -3,7 +3,6 @@ import os
 from itertools import cycle
 import discord
 from discord.ext import commands, tasks
-
 from datetime import datetime
 from bot.cogs.Currency import Currency
 import time
