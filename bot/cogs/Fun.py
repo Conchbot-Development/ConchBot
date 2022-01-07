@@ -8,7 +8,6 @@ import discord
 from discord.ext.commands.cooldowns import BucketType
 import httpx
 from discord.ext import commands, menus
-
 import os
 import urllib
 import sqlite3

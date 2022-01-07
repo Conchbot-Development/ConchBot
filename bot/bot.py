@@ -3,11 +3,9 @@ import os
 from itertools import cycle
 import discord
 from discord.ext import commands, tasks
-
+from tortoise import Tortoise
 from datetime import datetime
-from bot.cogs.Currency import Currency
 import time
-from bot.cogs.utils.embed import Embeds
 import logging
 from disgames import register_commands
 import aiohttp
@@ -20,12 +18,12 @@ def get_prefix(client, message):
 
 initial_extensions = [
     "bot.cogs.BotConfig",
-    "bot.cogs.Currency",
     "bot.cogs.Fun",
     "bot.cogs.Help",
     "bot.cogs.Image",
     "bot.cogs.Support",
-    "bot.cogs.Utility"
+    "bot.cogs.Utility",
+    "bot.cogs.tags"
 ]
 
 utils_extensions = [
@@ -67,6 +65,12 @@ class ConchBot(commands.Bot):
 
     async def on_ready(self):
         print("------")
+        await Tortoise.init(
+            db_url="sqlite://bot/db/tags.db", modules={"models": ["bot.cogs.utils.models"]}
+        )
+        await Tortoise.generate_schemas()
+        print("Tortoise ORM initialized.")
+        print("------")
         print("ConchBot is online!")
         await self.status_loop()
     
@@ -91,12 +95,6 @@ class ConchBot(commands.Bot):
     async def on_disconnect(self):
         print("------")
         print("Conch Bot disconnected.")
-
-    async def before_command(self, ctx):
-        if ctx.command.cog.qualified_name == "NSFW" and not ctx.channel.is_nsfw():
-            embed = Embeds().OnError(ctx.command.qualified_name, self.time, "The command can only be used in NSFW channels!")
-            await ctx.send(embed=embed)
-        await Currency.open_account(self, ctx.author) 
 
     @property
     def Config(self):
