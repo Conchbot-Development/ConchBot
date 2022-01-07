@@ -9,7 +9,7 @@
 
 <h1 align="center">ConchBot</h1>
 
-Welcome to the Offical GitHub repository of the next [Conchbot](https://github.com/Jerry-py/ConchBot) by Jerrydotpy
+Welcome to the Offical GitHub repository of the next [Conchbot](https://github.com/ConchDev/ConchBot) by Jerrydotpy
 
 Note: The orginal has been discontinued
 
@@ -27,26 +27,14 @@ redditpassword= #your reddit application password
 aiapikey= #your api key from https://api-info.pgamerx.com/register.html
 GITHUB_REPO_LINK=https://github.com/Conchbot-Development/ConchBot
 GITHUB_REPO_BRANCH=master
+SNIPE_UPLOAD_CHANNEL= #your channel id here
 ```
+
+See [.env.example](https://github.com/Conchbot-Development/ConchBot/blob/master/.env.example)
 
 Run `pip3 install -r requirements.txt` in your terminal
 
 Then run `launcher.py`
-
-
-## Contribute
-
-Contributing is easy.
-
-Steps:
-1. Create a fork
-
-2. Test your code out
-
-3. Create a PR (Pull Request)
-
-We'll look into the the PR
-
 
 
 ## Support
