@@ -146,3 +146,6 @@ discord.log
 bot/src/message.txt
 bot/src/before.txt
 bot/src/after.txt
+
+# Pycharm
+.idea

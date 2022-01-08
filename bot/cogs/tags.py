@@ -9,6 +9,7 @@ class _Lowercase(commands.Converter):
     async def convert(self, ctx, text):
         return text.lower()
 
+
 def s(data) -> Literal["", "s"]:
     check = data == 1
     if hasattr(data, "endswith"):
@@ -17,7 +18,9 @@ def s(data) -> Literal["", "s"]:
         check = len(data) == 1
     return "s" if check else ""
 
+
 Lowercase = _Lowercase()
+
 
 class Tags(commands.Cog):
     def __init__(self, bot):
@@ -58,7 +61,7 @@ class Tags(commands.Cog):
                 await tag.update_from_dict({"content": content}).save()
                 await ctx.reply(f"Tag `{name}` edited successfully.")
             else:
-                await ctx.reply("You dont own this tag.")
+                await ctx.reply("You don't own this tag.")
         else:
             await ctx.reply("A tag with this name doesn't exist.")
 
@@ -73,7 +76,7 @@ class Tags(commands.Cog):
                 await tag.delete()
                 await ctx.reply(f"Tag `{name}` deleted successfully.")
             else:
-                await ctx.reply("You dont own this tag.")
+                await ctx.reply("You don't own this tag.")
         else:
             await ctx.reply("A tag with this name doesn't exist.")
 
@@ -85,7 +88,7 @@ class Tags(commands.Cog):
                 await tag.update_from_dict({"author_id": member.id}).save()
                 await ctx.send(f"Tag `{name}` transferred to {member} successfully.")
             else:
-                await ctx.reply("You dont own this tag.")
+                await ctx.reply("You don't own this tag.")
         else:
             await ctx.reply("A tag with this name doesn't exist.")
 
@@ -102,7 +105,7 @@ class Tags(commands.Cog):
                         f"Tag `{name}` renamed to `{new_name}` successfully."
                     )
             else:
-                await ctx.reply("You dont own this tag.")
+                await ctx.reply("You don't own this tag.")
         else:
             await ctx.reply("A tag with this name doesn't exist.")
 
@@ -192,7 +195,6 @@ class Tags(commands.Cog):
             )
         else:
             await ctx.reply("This server does not have any tags.")
-
 
 
 def setup(bot):

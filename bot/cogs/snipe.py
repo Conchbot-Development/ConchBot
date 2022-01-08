@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 import datetime
 import sqlite3
-import asyncio
 
 
 class Sniping(commands.Cog):
@@ -16,7 +15,7 @@ class Sniping(commands.Cog):
     def snipe_embed(self, db_type):
         return discord.Embed(title=f"{db_type.capitalize()} Snipes", colour=discord.Color.green())
     
-    async def get_data(self, db_type, guildid, num, ctx = None):
+    async def get_data(self, db_type, guildid, num, ctx=None):
         db_type = str(db_type).lower()
 
         embed = self.snipe_embed(db_type)
@@ -82,7 +81,6 @@ class Sniping(commands.Cog):
         
         before_content = self._unconvert_quotes(before_content)
         after_content = self._unconvert_quotes(after_content)
-        
 
         embed.add_field(name="Author", value=f"{author.mention}")
         embed.add_field(name="Channel", value=f"{channel.mention}")
@@ -107,8 +105,7 @@ class Sniping(commands.Cog):
         
         message_content = await self._check_text(message_content, 926180891577962577, 'message')
         message_content = self._unconvert_quotes(message_content)
-        
-        
+
         embed.add_field(name="Channel", value=f"{channel.mention}")
         embed.add_field(name="Message Content", value=f"{message_content}")
         embed.add_field(name="Author", value=f"{author.mention}")
@@ -133,7 +130,6 @@ class Sniping(commands.Cog):
             
         file = discord.File(f'./bot/src/{file}.txt')
         return file
-        
 
     def _fields(self, embed, time, author):
         embed.add_field(name='Time', value=f'{time}')
@@ -206,7 +202,6 @@ class Sniping(commands.Cog):
         ''')
         connect.commit()
 
-        
         cursor.execute('''CREATE TABLE IF NOT EXISTS reaction_snipes (
             guild_id TEXT,
             channel TEXT, 
@@ -231,7 +226,8 @@ class Sniping(commands.Cog):
         
         message_content = await self._check_text(message_content, 926180891577962577, 'message')
 
-        sql = ('INSERT INTO delete_snipes (guild_id, channel, message_content, author, attachments, time) VALUES (?, ?, ?, ?, ?, ?)')
+        sql = ('INSERT INTO delete_snipes (guild_id, channel, message_content, author, attachments, time) VALUES (?, '
+               '?, ?, ?, ?, ?)')
         value = (guild_id, channel, message_content, author, attachments, self.time)
 
         cursor.execute(
@@ -255,7 +251,8 @@ class Sniping(commands.Cog):
         before_content = await self._check_text(before_content, 926180891577962577, 'before')
         after_content = await self._check_text(after_content, 926180891577962577, 'after')
         
-        sql = ("INSERT INTO edit_snipes (guild_id, author, channel, before_content, after_content, jump_url, time) VALUES (?, ?, ?, ?, ?, ?, ?)")
+        sql = "INSERT INTO edit_snipes (guild_id, author, channel, before_content, after_content, jump_url, " \
+              "time) VALUES (?, ?, ?, ?, ?, ?, ?) "
         value = (guild_id, author, channel, before_content, after_content, jump_url, self.time)
         
         cursor.execute(
@@ -277,8 +274,8 @@ class Sniping(commands.Cog):
         jump_url = f"https://discordapp.com/channels/{guild_id}/{channel}/{message_id}"
         author = payload.user_id
 
-        
-        sql = ("INSERT INTO reaction_snipes (guild_id, channel, emoji, jump_url, author, time) VALUES (?, ?, ?, ?, ?, ?)")
+        sql = ("INSERT INTO reaction_snipes (guild_id, channel, emoji, jump_url, author, time) VALUES (?, ?, ?, ?, ?, "
+               "?)")
         value = (guild_id, channel, emoji, jump_url, author, self.time)
 
         cursor.execute(
@@ -286,8 +283,7 @@ class Sniping(commands.Cog):
         )
 
         connect.commit()
-        
-    
+
     @commands.group(invoke_without_command=True)
     async def snipe(self, ctx, number: int = 0):
         if number < 0:
@@ -296,8 +292,7 @@ class Sniping(commands.Cog):
         
         embed = await self.get_data('delete', ctx.guild.id, number)
         await ctx.send(embed=embed)
-        
-    
+
     @snipe.command()
     async def delete(self, ctx, number: int = 0):
         if number < 0:

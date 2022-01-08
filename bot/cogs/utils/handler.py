@@ -2,11 +2,8 @@ import discord
 from discord.ext import commands
 import sys
 import asyncio
-
-import os
 import datetime
 from bot.cogs.utils.embed import Embeds
-
 
 
 class CommandErrorHandler(commands.Cog):
@@ -18,17 +15,19 @@ class CommandErrorHandler(commands.Cog):
     async def on_command_error(self, ctx, error):
         try:
             error = error.original
-        except:
+        except Exception:
             error = error
 
         if isinstance(error, IndexError):
             embed = Embeds().OnError(ctx.command.qualified_name, self.time, "The number value you input was invalid")
             await ctx.send(embed=embed)        
         elif isinstance(error, commands.NoPrivateMessage):
-            embed = Embeds().OnError(ctx.command.qualified_name, self.time, "The command can not be used in private messages")
+            embed = Embeds().OnError(ctx.command.qualified_name, self.time, "The command can not be used in private "
+                                                                            "messages")
             await ctx.send(embed=embed)
         elif isinstance(error, commands.DisabledCommand):
-            embed = Embeds().OnError(ctx.command.qualified_name, self.time, "The command is currently disabled and cannot be used")
+            embed = Embeds().OnError(ctx.command.qualified_name, self.time, "The command is currently disabled and "
+                                                                            "cannot be used")
             await ctx.send(embed=embed)
         elif isinstance(error, commands.CommandOnCooldown):
             embed = Embeds().OnCooldown(error=error)
@@ -49,15 +48,17 @@ class CommandErrorHandler(commands.Cog):
             embed = Embeds().OnError(ctx.command.qualified_name, self.time, "Couldn't find what you need")
             await ctx.send(embed=embed)
         elif isinstance(error, asyncio.TimeoutError):
-            embed = Embeds().OnError(ctx.command.qualified_name, self.time, "You have been timed out because you didn't respond in time")
+            embed = Embeds().OnError(ctx.command.qualified_name, self.time, "You have been timed out because you "
+                                                                            "didn't respond in time")
             await ctx.send(embed=embed)          
         elif isinstance(error, discord.HTTPException):
-            embed = Embeds().OnError(ctx.command.qualified_name, self.time, "Something went wrong... Please Contact: Jerry.py#4249 if it keeps happening")
+            embed = Embeds().OnError(ctx.command.qualified_name, self.time, "Something went wrong... Please Contact: "
+                                                                            "Jerrydotpy#4249 if it keeps happening")
             await ctx.send(embed=embed)
         if not isinstance(error, discord.HTTPException):
             try:
                 print(error, file=sys.stderr)
-            except:
+            except Exception:
                 print(error, file=sys.stderr)
         else:
             creator = await self.client.fetch_user(self.client.getenv("OWNER_ID"))
@@ -70,6 +71,6 @@ class CommandErrorHandler(commands.Cog):
             )
             await creator.send(embed=embed)
 
+
 def setup(client):
     client.add_cog(CommandErrorHandler(client))
-        

@@ -1,13 +1,12 @@
 import json
 import urllib.request
 import random
-import os
 import aiohttp
 import asyncpraw
 import discord
 from discord.ext.commands.cooldowns import BucketType
 import httpx
-from discord.ext import commands, menus
+from discord.ext import commands
 import os
 import urllib
 import sqlite3
@@ -19,26 +18,27 @@ import asyncio
 from bot.cogs.utils.pagination import Paginator
 
 
-
 class Fun(commands.Cog):
     '''
-    The fun category is where most fun commands are. ConchBot is all about its fun commands, so most commands will be here.
+    The fun category is where most fun commands are. ConchBot is all about its fun commands, so most commands will be
+    here.
     '''
 
     def __init__(self, client):
         self.client = client
         self.time = datetime.datetime.utcnow().strftime('%Y:%m:%d %H:%M')
-        reddit = asyncpraw.Reddit(client_id = self.client.getenv("redditid"),
-                    client_secret = self.client.getenv("redditsecret"),
-                    username = "ConchBot",
-                    password = self.client.getenv('redditpassword'),
-                    user_agent = "ConchBotPraw")
+        self.reddit = asyncpraw.Reddit(client_id=self.client.getenv("redditid"),
+                                       client_secret=self.client.getenv("redditsecret"),
+                                       username="ConchBot",
+                                       password=self.client.getenv('redditpassword'),
+                                       user_agent="ConchBotPraw")
 
-        rs = randomstuff.AsyncClient(api_key = self.client.getenv("aiapikey"))
-        
+        self.rs = randomstuff.AsyncClient(api_key=self.client.getenv("aiapikey"))
+
     async def category_convert(self, category):
         cat = category.lower()
-        categories = ['education', 'diy', 'recreational', 'social', 'charity', 'cooking', 'relaxation', 'music', 'busywork']
+        categories = ['education', 'diy', 'recreational', 'social', 'charity', 'cooking', 'relaxation', 'music',
+                      'busywork']
         alias1 = ['edu', '', 'recreation', '', '', 'baking', 'relax', '', 'work']
         alias2 = ['educational', 'rec', '', '', '', 'relaxational', '', '']
 
@@ -52,7 +52,7 @@ class Fun(commands.Cog):
             return categories[index]
         else:
             return False
-            
+
     async def create_gofile_folder(self, user_id):
         db = sqlite3.connect('./bot/db/config.db')
         cursor = db.cursor()
@@ -75,7 +75,8 @@ class Fun(commands.Cog):
             token = self.client.getenv("GOFILE_TOKEN")
 
             async with aiohttp.ClientSession() as session:
-                async with session.put("https://api.gofile.io/createFolder", data=f'parentFolderId={folderid}&token={token}&folderName={user_id}') as resp:
+                async with session.put("https://api.gofile.io/createFolder",
+                                       data=f'parentFolderId={folderid}&token={token}&folderName={user_id}') as resp:
                     data = json.loads(await resp.read())
                     status = data['status']
                     dat = str(data['data']) + "ee"
@@ -88,12 +89,12 @@ class Fun(commands.Cog):
             else:
                 print(status)
                 return False
-            
+
     @property
     def _session(self):
         return self.client.http._HTTPClient__session
 
-    async def get_data(self, data_type: str = "json", url : str = None):
+    async def get_data(self, data_type: str = "json", url: str = None):
         response = await self._session.get(url)
         datatype = data_type.lower()
         if datatype == "json":
@@ -119,16 +120,17 @@ class Fun(commands.Cog):
                 message = aimsg
                 await message.reply(message)
             except httpx.ReadTimeout:
-                await message.channel.send("It seems my API has timed out. Please give me a few minutes, and if the problem "
-                "continues, please contact UnsoughtConch via my `cb support` command.")
+                await message.channel.send(
+                    "It seems my API has timed out. Please give me a few minutes, and if the problem "
+                    "continues, please contact UnsoughtConch via my `cb support` command.")
         try:
             if (
-                message.guild.id == 724050498847506433
-                and "retard" in message.content.lower()
+                    message.guild.id == 724050498847506433
+                    and "retard" in message.content.lower()
             ):
                 await message.add_reaction("☹")
-        except:
-            pass
+        except Exception as e:
+            print(e)
 
         if message.content == f"<@!{self.client.user.id}>":
             await message.channel.send("My prefix is `cb `")
@@ -137,15 +139,15 @@ class Fun(commands.Cog):
     @commands.has_permissions(manage_guild=True)
     async def ai(self, ctx):
         await ctx.send("You can set up a chatbot channel by naming any channel 'conchchat,' or I can do it for you! "
-        "would you like me to do it for you? `Yes` or `no`.")
+                       "would you like me to do it for you? `Yes` or `no`.")
         msg = await self.client.wait_for('message', check=lambda message: message.author == ctx.author, timeout=30)
         if "yes" in msg.content.lower():
             await ctx.send("What category would you like this channel in? Channel categories ***must be the exact "
-            "name, capitalization and all.***")
+                           "name, capitalization and all.***")
             msg0 = await self.client.wait_for('message', check=lambda message: message.author == ctx.author, timeout=30)
             category = discord.utils.get(ctx.guild.categories, name=msg0.content)
             try:
-                channel = await ctx.guild.create_text_channel('conchchat', category=category)
+                await ctx.guild.create_text_channel('conchchat', category=category)
             except:
                 await ctx.send("I'm sorry, but I do not have the `manage guild` requirement needed to create channels.")
                 return
@@ -177,9 +179,9 @@ class Fun(commands.Cog):
                 all_subs.append(submission)
 
             ransub = random.choice(all_subs)
-            if ransub.over_18 and ctx.channel.is_nsfw() != True:
+            if ransub.over_18 and ctx.channel.is_nsfw() is not True:
                 await ctx.send("Looks like that post is marked over 18, meaning you need to be in an NSFW marked"
-                " channel to look at that post.")
+                               " channel to look at that post.")
                 return
             if ransub.is_self:
                 embed = discord.Embed(title=f"{ransub.author}'s Post", colour=ctx.author.colour)
@@ -187,15 +189,16 @@ class Fun(commands.Cog):
                 embed.set_footer(text=f"❤ {ransub.ups} | 💬 {ransub.num_comments}")
             else:
                 embed = discord.Embed(title=ransub.title, colour=ctx.author.colour, url=ransub.url)
-                embed.set_footer(text=f"Posted by {ransub.author} on Reddit. | ❤ {ransub.ups} | 💬 {ransub.num_comments}")
+                embed.set_footer(
+                    text=f"Posted by {ransub.author} on Reddit. | ❤ {ransub.ups} | 💬 {ransub.num_comments}")
                 embed.set_image(url=ransub.url)
             await message.delete()
             await ctx.send(embed=embed)
-        except:
+        except Exception as e:
             await ctx.send("Something went wrong. This may be the fact that the subreddit does not exist or is locked.")
 
     @commands.command(description="It's This for That is a fun API and website! It gives startup ideas.")
-    @commands.cooldown(1, 10, commands.BucketType.user) 
+    @commands.cooldown(1, 10, commands.BucketType.user)
     async def itft(self, ctx):
         thing = await self.get_data('json', 'https://itft.io/api/v1/random')
         try:
@@ -204,15 +207,15 @@ class Fun(commands.Cog):
             embed.add_field(name="For", value=f"**{thing['that']}**", inline=False)
             embed.set_footer(text="ItsThisForThat API | itsthisforthat.com")
             await ctx.send(embed=embed)
-        except:
-            await ctx.send("Woops! Something went wrong.")
+        except Exception as e:
+            await ctx.send(f"Woops! Something went wrong.\nError: {e}")
 
     @commands.command(description="View COVID statistics for any country!")
-    @commands.cooldown(1, 10, commands.BucketType.user) 
+    @commands.cooldown(1, 10, commands.BucketType.user)
     async def covid(self, ctx, *, country):
         data = await self.get_data('json', f"https://corona.lmao.ninja/v2/countries/{country}")
         try:
-            embed = discord.Embed(title=f"COVID-19 in {country}", colour=discord.Colour.gold(),)
+            embed = discord.Embed(title=f"COVID-19 in {country}", colour=discord.Colour.gold(), )
             embed.add_field(name="Cases:", value=data[country]['All']['confirmed'])
             embed.add_field(name="Recovered Cases:", value=data[country]['All']['recovered'])
             embed.add_field(name="Deaths:", value=data[country]['All']['deaths'])
@@ -220,11 +223,11 @@ class Fun(commands.Cog):
             embed.add_field(name="Life Expectancy:", value=data[country]['All']['life_expectancy'])
             embed.set_footer(text="Stats brought to you by M-Media-Group's COVID-19 API")
             await ctx.send(embed=embed)
-        except:
+        except Exception:
             await ctx.send("Country not found. Country names ***are case-sensitive***.")
 
     @commands.command(description="Get a joke from the r/jokes subreddit!")
-    @commands.cooldown(1, 10, commands.BucketType.user) 
+    @commands.cooldown(1, 10, commands.BucketType.user)
     async def joke(self, ctx):
         msg = await ctx.send("Grabbing your joke...")
         subreddit = await self.reddit.subreddit("jokes")
@@ -233,46 +236,46 @@ class Fun(commands.Cog):
 
         async for submission in top:
             all_subs.append(submission)
-        
+
         ransub = random.choice(all_subs)
 
-        embed = discord.Embed(name=f"{ransub.author}'s Joke", colour=ctx.author.colour)
+        embed = discord.Embed(title=f"{ransub.author}'s Joke", colour=ctx.author.colour)
         embed.add_field(name=ransub.title, value=ransub.selftext)
         embed.set_footer(text=f"❤ {ransub.ups} | 💬 {ransub.num_comments}")
         await msg.delete()
         await ctx.send(embed=embed)
 
     @commands.command(aliases=['repeat'], description="Make the bot repeat a word or phrase.")
-    @commands.cooldown(1, 3, commands.BucketType.user) 
-    async def echo(self, ctx, channel:discord.TextChannel, *, msg):
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    async def echo(self, ctx, channel: discord.TextChannel, *, msg):
         if channel is None:
             await ctx.send(msg)
         else:
             await channel.send(msg)
 
     @commands.command(name='8ball', description="Ask the 8-ball a question and receive an answer!")
-    @commands.cooldown(1, 5, commands.BucketType.user) 
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def _8ball(self, ctx, *, msg):
         responses = ['As I see it, yes.',
-                        'Ask again later.',
-                        'Better not tell you now.',
-                        'Cannot predict now.',
-                        'Concentrate and ask again.',
-                        'Don’t count on it.',
-                        'It is certain.',
-                        'It is decidedly so.',
-                        'Most likely.',
-                        'My reply is no.',
-                        'My sources say no.',
-                        'Outlook not so good.',
-                        'Outlook good.',
-                        'Reply hazy, try again.',
-                        'Signs point to yes.',
-                        'Very doubtful.',
-                        'Without a doubt.',
-                        'Yes.',
-                        'Yes – definitely.',
-                        'You may rely on it.']
+                     'Ask again later.',
+                     'Better not tell you now.',
+                     'Cannot predict now.',
+                     'Concentrate and ask again.',
+                     'Don’t count on it.',
+                     'It is certain.',
+                     'It is decidedly so.',
+                     'Most likely.',
+                     'My reply is no.',
+                     'My sources say no.',
+                     'Outlook not so good.',
+                     'Outlook good.',
+                     'Reply hazy, try again.',
+                     'Signs point to yes.',
+                     'Very doubtful.',
+                     'Without a doubt.',
+                     'Yes.',
+                     'Yes – definitely.',
+                     'You may rely on it.']
         embed = discord.Embed(
             title="Magic 8 Ball",
             colour=discord.Colour.blurple()
@@ -284,39 +287,64 @@ class Fun(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def hehewed(self, ctx):
-        embed = discord.Embed(title="**__Ping and Access Roles__**", description="Get your roles by reacting to the corresponding reaction.", color=discord.Color.red())
-        embed.add_field(name="**Announcement Ping**", value="React with 📣 to get pings for server announcements!", inline=False)
-        embed.add_field(name="**Vote Ping**", value=f"React with 🗳 to get pings when there's a new vote in {self.client.get_channel(726098004708163594).mention}!", inline=False)
-        embed.add_field(name="**Revive Ping**", value="React with 💀 to get pinged when the chat is dead!", inline=False)
-        embed.add_field(name="**NSFW Access**", value=f"React with 🔞 to get access to {self.client.get_channel(814256958806556723).mention}!", inline=False)
+        embed = discord.Embed(title="**__Ping and Access Roles__**",
+                              description="Get your roles by reacting to the corresponding reaction.",
+                              color=discord.Color.red())
+        embed.add_field(name="**Announcement Ping**", value="React with 📣 to get pings for server announcements!",
+                        inline=False)
+        embed.add_field(name="**Vote Ping**",
+                        value=f"React with 🗳 to get pings when there's a new vote in {self.client.get_channel(726098004708163594).mention}!",
+                        inline=False)
+        embed.add_field(name="**Revive Ping**", value="React with 💀 to get pinged when the chat is dead!",
+                        inline=False)
+        embed.add_field(name="**NSFW Access**",
+                        value=f"React with 🔞 to get access to {self.client.get_channel(814256958806556723).mention}!",
+                        inline=False)
         embed.set_footer(text="React with a listed reaction to get that role.")
         await ctx.send(embed=embed)
 
-        embed = discord.Embed(title="**__Color Roles__**", color=discord.Color.teal(), description="Make your name a pretty color!")
-        embed.add_field(name="**Red**", value=f"React with 🔴 to get a {ctx.guild.get_role(857816667190198282).mention} name!", inline=False)
-        embed.add_field(name="**Orange**", value=f"React with 🟠 to get an {ctx.guild.get_role(857816821242789929).mention} name!", inline=False)
-        embed.add_field(name="**Yellow**", value=f"React with 🟡 to get a {ctx.guild.get_role(857816873848012820).mention} name!", inline=False)
-        embed.add_field(name="**Green**", value=f"React with 🟢 to get a {ctx.guild.get_role(857816937152380948).mention} name!", inline=False)
-        embed.add_field(name="**Blue**", value=f"React with 🔵 to get a {ctx.guild.get_role(857816980887044157).mention} name!", inline=False)
-        embed.add_field(name="**Purple**", value=f"React with 🟣 to get a {ctx.guild.get_role(857817018039009290).mention} name!", inline=False)
-        embed.add_field(name="**White**", value=f"React with ⚪ to get a {ctx.guild.get_role(857817054706663494).mention} name!", inline=False)
-        embed.add_field(name="**Black**", value=f"React with ⚫ to get a {ctx.guild.get_role(857817144989712434).mention} name!", inline=False)
+        embed = discord.Embed(title="**__Color Roles__**", color=discord.Color.teal(),
+                              description="Make your name a pretty color!")
+        embed.add_field(name="**Red**",
+                        value=f"React with 🔴 to get a {ctx.guild.get_role(857816667190198282).mention} name!",
+                        inline=False)
+        embed.add_field(name="**Orange**",
+                        value=f"React with 🟠 to get an {ctx.guild.get_role(857816821242789929).mention} name!",
+                        inline=False)
+        embed.add_field(name="**Yellow**",
+                        value=f"React with 🟡 to get a {ctx.guild.get_role(857816873848012820).mention} name!",
+                        inline=False)
+        embed.add_field(name="**Green**",
+                        value=f"React with 🟢 to get a {ctx.guild.get_role(857816937152380948).mention} name!",
+                        inline=False)
+        embed.add_field(name="**Blue**",
+                        value=f"React with 🔵 to get a {ctx.guild.get_role(857816980887044157).mention} name!",
+                        inline=False)
+        embed.add_field(name="**Purple**",
+                        value=f"React with 🟣 to get a {ctx.guild.get_role(857817018039009290).mention} name!",
+                        inline=False)
+        embed.add_field(name="**White**",
+                        value=f"React with ⚪ to get a {ctx.guild.get_role(857817054706663494).mention} name!",
+                        inline=False)
+        embed.add_field(name="**Black**",
+                        value=f"React with ⚫ to get a {ctx.guild.get_role(857817144989712434).mention} name!",
+                        inline=False)
         embed.set_footer(text="React with a listed reaction to get that color name.")
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["LMGTFY"], description="Make a Google link with the specified query.")
-    @commands.cooldown(1, 3, commands.BucketType.user) 
+    @commands.cooldown(1, 3, commands.BucketType.user)
     async def google(self, ctx, *, query):
         nquery = query.replace(' ', '+').lower()
         await ctx.send(f"https://www.google.com/search?q={nquery}")
 
     @commands.command(aliases=['chances', 'odds', 'odd'], description="Rate the chances of something happening!")
-    @commands.cooldown(1, 5, commands.BucketType.user) 
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def chance(self, ctx, *, msg):
         chancenum = random.randint(0, 10)
         embed = discord.Embed(
             title="What are the Chances?",
-            colour = ctx.author.colour
+            colour=ctx.author.colour
         )
         embed.add_field(name="Question:", value=msg)
         embed.add_field(name="The chances are...", value=chancenum)
@@ -324,7 +352,7 @@ class Fun(commands.Cog):
 
     @commands.command(aliases=['avatar'], description="Show someone's profile picture!\n[member] value is optional.")
     @commands.cooldown(1, 3, commands.BucketType.user)
-    async def pfp(self, ctx, member: discord.Member=None):
+    async def pfp(self, ctx, member: discord.Member = None):
         if member is None:
             embed = discord.Embed(
                 title=f"{ctx.author}'s Avatar",
@@ -339,7 +367,7 @@ class Fun(commands.Cog):
             embed.set_image(url=member.avatar.url)
 
         await ctx.send(embed=embed)
-    
+
     @commands.group(invoke_without_command=True, description="Returns a random activity for when you're bored!")
     @commands.cooldown(1, 5, BucketType.user)
     async def bored(self, ctx):
@@ -352,15 +380,15 @@ class Fun(commands.Cog):
             people = "1 person."
         else:
             people = f"{json['participants']}"
-        embed.add_field(name="This might cost...", value="$" + str(int(json['price'])*10), inline=False)
+        embed.add_field(name="This might cost...", value="$" + str(int(json['price']) * 10), inline=False)
         embed.add_field(name="The amount of people needed for this project is...", value=people, inline=False)
         embed.set_footer(text=f"Type: {json['type']} | Key: {json['key']} | Provided by BoredAPI")
 
         await ctx.send(embed=embed)
 
     @commands.group(invoke_without_command=True, description="Make a QR code!")
-    async def qr(self, ctx, value = None):
-        
+    async def qr(self, ctx, value=None):
+
         if value is None:
             o = ctx.message.attachments[0].url
         o = urllib.parse.quote(value)
@@ -375,7 +403,7 @@ class Fun(commands.Cog):
         else:
             if len(ctx.message.attachments) > 1:
                 return await ctx.send("We can only decode one QR code at a time.")
-            
+
             elif len(ctx.messsage.attachments) < 1:
                 return await ctx.send("You have to add some type of QR code for us to decode.")
 
@@ -383,8 +411,8 @@ class Fun(commands.Cog):
 
         try:
             res = await self.get_data('json', f'https://api.qrserver.com/v1/read-qr-code/?fileurl={url}')
-        except:
-            return await ctx.send("I couldn't find any QR codes in that image.")
+        except Exception as e:
+            return await ctx.send(f"I couldn't find any QR codes in that image.\nError: {e}")
 
         await ctx.send(res[0]['symbol'][0]['data'])
 
@@ -401,7 +429,7 @@ class Fun(commands.Cog):
                 people = "1 person."
             else:
                 people = f"{json['participants']}"
-            embed.add_field(name="This might cost...", value="$" + str(int(json['price'])*10), inline=False)
+            embed.add_field(name="This might cost...", value="$" + str(int(json['price']) * 10), inline=False)
             embed.add_field(name="The amount of people needed for this project is...", value=people, inline=False)
             embed.set_footer(text=f"Type: {json['type']} | Key: {json['key']} | Provided by BoredAPI")
 
@@ -409,13 +437,15 @@ class Fun(commands.Cog):
         except KeyError:
             await ctx.send("No activity found with that key.")
 
-    @bored.command(description="Search for activities by category.\n[category] value is optional, returns a list of categories if none.")
+    @bored.command(
+        description="Search for activities by category.\n[category] value is optional, returns a list of categories if none.")
     @commands.cooldown(1, 5, BucketType.user)
     async def category(self, ctx, category=None):
         if not category:
-            embed = discord.Embed(title="List of Categories", color=discord.Color.random(), description="Education\nRecreational\nSocial\nDIY\nCharity\nCooking\nRelaxation\nMusic\nBusywork")
+            embed = discord.Embed(title="List of Categories", color=discord.Color.random(),
+                                  description="Education\nRecreational\nSocial\nDIY\nCharity\nCooking\nRelaxation\nMusic\nBusywork")
             return await ctx.send(embed=embed)
-        
+
         category = await self.category_convert(category)
 
         if not category:
@@ -432,14 +462,13 @@ class Fun(commands.Cog):
                 people = "1 person."
             else:
                 people = f"{json['participants']}"
-            embed.add_field(name="This might cost...", value="$" + str(int(json['price'])*10), inline=False)
+            embed.add_field(name="This might cost...", value="$" + str(int(json['price']) * 10), inline=False)
             embed.add_field(name="The amount of people needed for this project is...", value=people, inline=False)
             embed.set_footer(text=f"Type: {json['type']} | Key: {json['key']} | Provided by BoredAPI")
 
             await ctx.send(embed=embed)
         except KeyError:
             return await ctx.send("That category does not exist.")
-
 
     @commands.group()
     async def gofile(self, ctx):
@@ -463,17 +492,17 @@ class Fun(commands.Cog):
                     embed.add_field(name="Input", value=f"```{code}```", inline=False)
                     embed.add_field(name="Output", value=f"```{encoded}```", inline=False)
                     embed.set_footer(text=f"Requested by {ctx.author.name}", icon_url=ctx.author.avatar.url)
-                except:
+                except Exception:
                     embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=400)
             else:
                 encoder = await self.get_data('json', f'https://some-random-api.ml/base64?encode={code}')
-                try:                            
+                try:
                     encoded = encoder["base64"]
                     embed = discord.Embed(title="Base64 Encoder", colour=discord.Color.green())
                     embed.add_field(name="Input", value=f"```{code}```", inline=False)
                     embed.add_field(name="Output", value=f"```{encoded}```", inline=False)
                     embed.set_footer(text=f"Requested by {ctx.author.name}", icon_url=ctx.author.avatar.url)
-                except:
+                except Exception:
                     embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=400)
             await ctx.send(embed=embed)
         else:
@@ -492,7 +521,7 @@ class Fun(commands.Cog):
                     embed.add_field(name="Input", value=f"```{code}```", inline=False)
                     embed.add_field(name="Output", value=f"```{decoded}```", inline=False)
                     embed.set_footer(text=f"Requested by {ctx.author.name}", icon_url=ctx.author.avatar.url)
-                except:
+                except Exception:
                     embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=decoder.status)
                     await ctx.send(embed=embed)
             else:
@@ -503,7 +532,7 @@ class Fun(commands.Cog):
                     embed.add_field(name="Input", value=f"```{code}```", inline=False)
                     embed.add_field(name="Output", value=f"```{decoded}```", inline=False)
                     embed.set_footer(text=f"Requested by {ctx.author.name}", icon_url=ctx.author.avatar.url)
-                except:
+                except Exception:
                     embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=400)
                 await ctx.send(embed=embed)
         else:
@@ -526,21 +555,22 @@ class Fun(commands.Cog):
             embed.set_footer(text='Page 1/1')
             try:
                 await ctx.send(embed=embed)
-            except:
+            except Exception:
                 embeds = []
 
                 page_count = lyrics / 4096
 
                 if (
-                    '.' in str(page_count)
-                    and str(page_count).split('.')[0] == 0
-                    or str(page_count).split('.')[1] == 0
+                        '.' in str(page_count)
+                        and str(page_count).split('.')[0] == 0
+                        or str(page_count).split('.')[1] == 0
                 ):
                     page_count = 1
 
                 num = 4096
                 for _ in range(int(page_count) + 1):
-                    embed = discord.Embed(title=f"{title} by {author}", description=lyrics[:num], colour=discord.Color.yellow())
+                    embed = discord.Embed(title=f"{title} by {author}", description=lyrics[:num],
+                                          colour=discord.Color.yellow())
                     embeds.append(embed)
                     num += 4096
 
@@ -551,7 +581,7 @@ class Fun(commands.Cog):
                     embed.set_footer(text=f"Page {embeds.index(embed) + 1}/{len(embeds)}")
 
                 await ctx.send(embed=embeds[0], view=Paginator(ctx, embeds))
-        except:
+        except Exception:
             embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=400)
             await ctx.send(embed=embed)
 
@@ -569,9 +599,9 @@ class Fun(commands.Cog):
 
             page_count = len(word_definition) / 4096
             if (
-                '.' in str(page_count)
-                and str(page_count).split('.')[0] == 0
-                or str(page_count).split('.')[1] == 0
+                    '.' in str(page_count)
+                    and str(page_count).split('.')[0] == 0
+                    or str(page_count).split('.')[1] == 0
             ):
                 page_count = 1
 
@@ -592,10 +622,9 @@ class Fun(commands.Cog):
             if len(embeds) == 1:
                 return await ctx.send(embed=embeds[0])
             await ctx.send(embed=embeds[0], view=Paginator(ctx, embeds))
-        except:
+        except Exception:
             embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=400)
             await ctx.send(embed=embed)
-        
 
     @commands.command(description="Returns a real-looking Discord bot token.")
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -605,40 +634,39 @@ class Fun(commands.Cog):
         response = await self.get_data('json', token_web)
         try:
             bottoken = response["token"]
-        except:
+        except Exception:
             embed = Embeds().OnApiError(command_name=ctx.command.qualified_name, status=400)
             return await ctx.send(embed=embed)
         await ctx.send(bottoken)
-        
-        
+
     @commands.command()
-    async def ttsobama(self, ctx, *, text : str = None):
+    async def ttsobama(self, ctx, *, text: str = None):
         if text is None:
             return await ctx.send("You need to enter text!")
-        
+
         if len(text) > 280:
             return await ctx.send("Text is too long!")
-        
+
         await ctx.send('Your video is loading... Might take up to 5-12 seconds', delete_after=12)
-        
+
         response = req.post(url='http://talkobamato.me/synthesize.py', data={
-                "input_text": text
-            })
+            "input_text": text
+        })
         await asyncio.sleep(12)
         url = response.url.replace('http://talkobamato.me/synthesize.py?speech_key=', '')
-        
+
         url = 'http://talkobamato.me/synth/output/' + url + '/obama.mp4'
-        
+
         await asyncio.sleep(1)
-        
+
         urllib.request.urlretrieve(url, 'obama.mp4')
-        
+
         file = discord.File('obama.mp4')
-        
+
         await ctx.send(file=file)
-        
+
         os.remove('obama.mp4')
-        
+
 
 def setup(client):
     client.add_cog(Fun(client))

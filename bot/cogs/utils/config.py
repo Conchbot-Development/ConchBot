@@ -8,4 +8,3 @@ class Config:
         
     def __getitem__(self, item):
         return os.getenv(item)
-    

@@ -1,6 +1,7 @@
 from tortoise import fields
 from tortoise.models import Model
 
+
 class TagModel(Model):
     guild_id = fields.IntField()
     author_id = fields.IntField()

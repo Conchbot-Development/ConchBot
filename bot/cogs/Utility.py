@@ -1,5 +1,3 @@
-import os
-import platform
 import datetime
 import discord
 from discord.ext import commands
@@ -7,7 +5,6 @@ import sqlite3
 import inspect
 import os
 import time
-from jishaku.codeblocks import codeblock_converter
 
 start_time = time.time()
 
@@ -15,7 +12,7 @@ start_time = time.time()
 class Utility(commands.Cog):
     def __init__(self, client):
         self.client = client
-    
+
     async def get_update_info(self, version=None):
         db = sqlite3.connect("./bot/db/updates.db")
         cursor = db.cursor()
@@ -34,7 +31,7 @@ class Utility(commands.Cog):
         published = cursor.fetchone()
 
         cursor.close()
-        db.close()        
+        db.close()
 
         return version, name[0], desc[0], updates[0], published[0]
 
@@ -52,11 +49,12 @@ class Utility(commands.Cog):
         servers = list(self.client.guilds)
         embed = discord.Embed(title="Guilds", colour=ctx.author.colour)
         for x in range(len(servers)):
-            embed.add_field(name=servers[x-1].name, value=servers[x-1].member_count, inline=False)
+            embed.add_field(name=servers[x - 1].name, value=servers[x - 1].member_count, inline=False)
         embed.add_field(name="Total Guilds:", value=len(self.client.guilds))
         embed.add_field(name="Total Members:", value=len(set(self.client.get_all_members())))
         await ctx.send(embed=embed)
-        await ctx.send(f"Total Guilds: {len(self.client.guilds)}\nTotal Members: {len(set(self.client.get_all_members()))}")
+        await ctx.send(f"Total Guilds: {len(self.client.guilds)}\nTotal Members: "
+                       f"{len(set(self.client.get_all_members()))}")
 
     @commands.command()
     @commands.is_owner()
@@ -78,21 +76,21 @@ class Utility(commands.Cog):
         await ctx.send(embed=e)
 
     @commands.command(aliases=["purge"])
-    @commands.cooldown(1, 5, commands.BucketType.user) 
+    @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.has_permissions(manage_messages=True)
-    async def clear(self, ctx, amount:int):
+    async def clear(self, ctx, amount: int):
         if amount < 1:
             await ctx.send("You can't clear a negative amount.")
         embed = discord.Embed(
-            colour = discord.Colour.purple(),
+            colour=discord.Colour.purple(),
         )
         embed.add_field(name="Messages Cleared", value=f"{amount} messages cleared.")
 
-        await ctx.channel.purge(limit=amount+1)
+        await ctx.channel.purge(limit=amount + 1)
         await ctx.send(embed=embed, delete_after=5)
-    
+
     @commands.command(aliases=["statistics", "info", "information"])
-    @commands.cooldown(1, 5, commands.BucketType.user) 
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def stats(self, ctx):
         delta_uptime = datetime.datetime.utcnow() - self.client.launch_time
         hours, remainder = divmod(int(delta_uptime.total_seconds()), 3600)
@@ -111,7 +109,6 @@ class Utility(commands.Cog):
         embed.add_field(name="Uptime:", value=f"{days}**d**, {hours}**h**, {minutes}**m**, {seconds}**s**", inline=True)
         embed.add_field(name="Uptime Lapse:", value=text)
         await ctx.send(embed=embed)
-
 
     @commands.command(aliases=["github", "code"])
     @commands.cooldown(1, 5, commands.BucketType.channel)
@@ -155,7 +152,7 @@ class Utility(commands.Cog):
 
             # Go to the command url. Note: It is a permalink
             final_url = (f'{conchbot_source_code_url}/blob/{branch}/{location}#L{start_line}-L'
-                     f'{start_line + len(end_line) - 1}')
+                         f'{start_line + len(end_line) - 1}')
 
             embed.add_field(name="Command Source:", value=final_url, inline=False)
 
@@ -170,7 +167,7 @@ class Utility(commands.Cog):
             msg = await self.client.wait_for('message', check=lambda message: message.author == ctx.author, timeout=30)
             if "yes" in msg.content.lower():
                 await ctx.send("I'm sorry you don't want me here anymore. If there was a problem or annoyance, you"
-                " can feel free to join my support server. (https://discord.gg/PyAcRfukvc)")
+                               " can feel free to join my support server. (https://discord.gg/PyAcRfukvc)")
                 await ctx.guild.leave()
             elif "no" in msg.content.lower():
                 await ctx.send("Thanks for deciding to keep me!")
@@ -190,10 +187,7 @@ class Utility(commands.Cog):
         if isinstance(error, commands.errors.BadArgument):
             await ctx.send("Your amount must be an integer greater than one.")
             return
-        
 
-    
-    
     @commands.group(invoke_without_command=True)
     @commands.is_owner()
     async def blacklist(self, ctx, val=None):
@@ -201,7 +195,7 @@ class Utility(commands.Cog):
             await ctx.invoke(self.client.get_command(f'blacklist add {val}'))
         else:
             return await ctx.send("You can add or remove")
-    
+
     @blacklist.command()
     async def add(self, ctx, id=None):
         if id is None:
@@ -238,6 +232,7 @@ class Utility(commands.Cog):
             db.commit()
             cursor.close()
             db.close()
+
 
 def setup(client):
     client.add_cog(Utility(client))

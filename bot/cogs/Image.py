@@ -3,20 +3,16 @@ import os
 import random
 import textwrap
 from io import BytesIO
-import requests
-import aiohttp
 import discord
 from bot.cogs.utils.embed import Embeds
 import PIL.Image
 from discord.ext import commands
-
 from PIL import ImageDraw, ImageFont
-
-
 
 eupvote = '<:Upvote:822667264406192198>'
 edownvote = '<:Downvote:822667263571525664>'
 ecomment = '<:Comment:822668322293940224> '
+
 
 class Image(commands.Cog):
 
@@ -31,7 +27,7 @@ class Image(commands.Cog):
     def _session(self):
         return self.client.http._HTTPClient__session
 
-    async def get_data(self, data_type: str = "json", url : str = None):
+    async def get_data(self, data_type: str = "json", url: str = None):
         response = await self._session.get(url)
         datatype = data_type.lower()
         if datatype == "json":
@@ -56,13 +52,13 @@ class Image(commands.Cog):
         draw = ImageDraw.Draw(img)
         fill_color = (255, 255, 255)
         stroke_color = (0, 0, 0)
-        draw.text((311, 26), val1, font = font, fill=fill_color, stroke_width=2, stroke_fill=stroke_color)
+        draw.text((311, 26), val1, font=font, fill=fill_color, stroke_width=2, stroke_fill=stroke_color)
         if val2 is not None:
-            draw.text((153, 535), val2, font = font, fill=fill_color, stroke_width=2, stroke_fill=stroke_color)
+            draw.text((153, 535), val2, font=font, fill=fill_color, stroke_width=2, stroke_fill=stroke_color)
         else:
-            draw.text((153, 535), val1, font = font, fill=fill_color, stroke_width=2, stroke_fill=stroke_color)
+            draw.text((153, 535), val1, font=font, fill=fill_color, stroke_width=2, stroke_fill=stroke_color)
         img.save("text.png")
-        await ctx.send(file = discord.File("text.png"))
+        await ctx.send(file=discord.File("text.png"))
         file = 'text.png'
         location = "./"
         path = os.path.join(location, file)
@@ -92,20 +88,16 @@ class Image(commands.Cog):
         if url is None:
             url = ctx.message.attachments[0].url
         try:
-            response = await requests.get(url)
-        except:
+            response = self.get_data("image", url)
+        except Exception:
             await ctx.send("You must provide a valid image URL.")
             return
-        size = 128, 128
-        img1 = PIL.Image.open(BytesIO(response.content))
-        img1_w, img1_h = img1.size
+        img1 = PIL.Image.open(BytesIO(response.read()))
         img2 = PIL.Image.open("bot/src/MemeTemplates/MentalIlness.png")
-        img2_w, img2_h = img2.size
-        offset = ((img2_w - img1_w) // 2, (img2_h - img1_h) // 2)
         basewidth = 175
         wpercent = (basewidth/float(img1.size[0]))
         hsize = int((float(img1.size[1])*float(wpercent)))
-        img1 = img1.resize((basewidth,hsize), PIL.Image.ANTIALIAS)
+        img1 = img1.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
         img2.paste(img1, (227, 286))
         img2.save("Meme.png")
         await msg.delete()
@@ -181,7 +173,8 @@ class Image(commands.Cog):
         path = os.path.join(location, file)
         os.remove(path)
 
-    @commands.command(description="\"My daughter tells me you like Discord bots\" \"Yes sir ConchBot is the worst\" \"You have six seconds to get the fuck out of my house\"")
+    @commands.command(description="\"My daughter tells me you like Discord bots\" \"Yes sir ConchBot is the worst\" "
+                                  "\"You have six seconds to get the fuck out of my house\"")
     async def getout(self, ctx, *, text):
         msg = await ctx.send("Creating your meme...")
         img = PIL.Image.open("bot/src/MemeTemplates/stayout.jpg")
@@ -197,8 +190,9 @@ class Image(commands.Cog):
         path = os.path.join(location, file)
         os.remove(path)
     
-    @commands.command(description="Make a picture of yourself or a friend in a WANTED poster!\n[member] value is optional.")
-    async def wanted(self, ctx, member : discord.Member=None):
+    @commands.command(description="Make a picture of yourself or a friend in a WANTED poster!\n[member] value is "
+                                  "optional.")
+    async def wanted(self, ctx, member: discord.Member = None):
         if member is None:
             member = ctx.author
 
@@ -209,7 +203,7 @@ class Image(commands.Cog):
         pfp = pfp.resize((308, 306))
         wanted.paste(pfp, (69, 143))
         wanted.save("profile.jpg")
-        await ctx.send(file = discord.File("profile.jpg"))
+        await ctx.send(file=discord.File("profile.jpg"))
         file = 'profile.jpg'
         location = "./"
         path = os.path.join(location, file)
@@ -218,13 +212,13 @@ class Image(commands.Cog):
     @commands.command(description="Show an image and a fact about the given animal!\n[animal] value is optional.")
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def animal(self, ctx, animal=None):
-        animal_options = ["dog", "cat", "panda", "fox", "bird", "koala", "red_panda", "racoon", "kangaroo", "elephant", "giraffe", "whale"]
+        animal_options = ["dog", "cat", "panda", "fox", "bird", "koala", "red_panda", "racoon", "kangaroo", "elephant",
+                          "giraffe", "whale"]
         if animal is None:
             animal = random.choice(animal_options)
         if (animal := animal.lower()) in animal_options:
             animal_fact_url = f"https://some-random-api.ml/facts/{animal}"
             animal_image_url = f"https://some-random-api.ml/img/{animal}"
-
 
             async with ctx.typing():
                 response = await self.get_data('json', animal_image_url)
@@ -253,7 +247,7 @@ class Image(commands.Cog):
         try:
             res = await self.get_data('json', 'https://www.reddit.com/r/memes/hot.json')            
             embed = discord.Embed(title="Meme")
-            embed.set_image(url=res['data']['children'] [random.randint(0, 25)]['data']['url'])
+            embed.set_image(url=res['data']['children'][random.randint(0, 25)]['data']['url'])
             await ctx.send(embed=embed)
         except:
             meme_link = 'https://some-random-api.ml/meme'
@@ -271,28 +265,31 @@ class Image(commands.Cog):
             await ctx.send(embed=embed)
 
     @commands.command(description="This command makes anyone *glassed*.\n[member] value is optional.")
-    async def glass(self, ctx, member: discord.Member=None):
+    async def glass(self, ctx, member: discord.Member = None):
         if not member:
             member = ctx.author
-        glassImage = await self.get_data('image', 'https://some-random-api.ml/canvas/glass')
+        glassImage = await self.get_data('image', f'https://some-random-api.ml/canvas/glass?avatar='
+                                                  f'{member.avatar.replace(size=1024, format="png")}')
         imageData = io.BytesIO(await glassImage.read())
         
         await ctx.reply(file=discord.File(imageData, 'glass.gif'))
 
     @commands.command(description="This command makes anyone *inverted*.\n[member] value is optional.")
-    async def invert(self, ctx, member: discord.Member=None):
+    async def invert(self, ctx, member: discord.Member = None):
         if not member:
             member = ctx.author
-        invertImage = await self.get_data('image', 'https://some-random-api.ml/canvas/invert')
+        invertImage = await self.get_data('image', f'https://some-random-api.ml/canvas/invert?avatar='
+                                                   f'{member.avatar.replace(size=1024, format="png")}')
         imageData = io.BytesIO(await invertImage.read())
         
         await ctx.reply(file=discord.File(imageData, 'invert.gif'))
 
     @commands.command(description="This command makes anyone *bright*.\n[member] value is optional.")
-    async def bright(self, ctx, member: discord.Member=None):
+    async def bright(self, ctx, member: discord.Member = None):
         if not member:
             member = ctx.author
-        brightImage = await self.get_data('image', 'https://some-random-api.ml/canvas/bright')
+        brightImage = await self.get_data('image', f'https://some-random-api.ml/canvas/bright?avatar='
+                                                   f'{member.avatar.replace(size=1024, format="png")}')
         imageData = io.BytesIO(await brightImage.read())
         
         await ctx.reply(file=discord.File(imageData, 'bright.gif'))
@@ -307,9 +304,10 @@ class Image(commands.Cog):
         await ctx.reply(file=discord.File(imageData, 'hex.gif'))
 
     @commands.command(description="Make a YouTube comment!")
-    async def comment(self, ctx, member: discord.Member, comment:str):
+    async def comment(self, ctx, member: discord.Member, comment: str):
         member_avatar = member.avatar.replace(format="png", size=256)
-        api_link = f"https://some-random-api.ml/canvas/youtube-comment?avatar={member_avatar}&comment={comment}&username={member.name}"
+        api_link = f"https://some-random-api.ml/canvas/youtube-comment?" \
+                   f"avatar={member_avatar}&comment={comment}&username={member.name}"
 
         youtubeComment = await self.get_data('image', api_link)
         imageData = io.BytesIO(await youtubeComment.read())
@@ -317,32 +315,34 @@ class Image(commands.Cog):
         await ctx.reply(file=discord.File(imageData, 'youtube.gif'))
 
     @commands.command(description="Blur an avatar.\n[member] value is optional.")
-    async def blur(self, ctx, member: discord.Member=None):
+    async def blur(self, ctx, member: discord.Member = None):
         if not member:
             member = ctx.author
-        blurImage = await self.get_data('image', 'https://some-random-api.ml/canvas/blur?avatar={}'.format(member.avatar.replace(format="png", size=1024)))
+        blurImage = await self.get_data('image', 'https://some-random-api.ml/canvas/blur?avatar={}'
+                                        .format(member.avatar.replace(format="png", size=1024)))
         imageData = io.BytesIO(await blurImage.read())
-        
-        
+
         await ctx.reply(file=discord.File(imageData, 'blur.gif'))
         
-    @commands.command(description="This command makes you gay, basically.\n[member] value is optional.", aliases=['gay'])
-    async def rainbow(self, ctx, member: discord.Member=None):
+    @commands.command(description="This command makes you gay, basically.\n[member] value is optional.",
+                      aliases=['gay'])
+    async def rainbow(self, ctx, member: discord.Member = None):
         if not member:
             member = ctx.author
-        gayImage = await self.get_data('image', 'https://some-random-api.ml/canvas/gay?avatar={}'.format(member.avatar.url_as(format="png", size=1024)))
+        gayImage = await self.get_data('image', 'https://some-random-api.ml/canvas/gay?avatar={}'
+                                       .format(member.avatar.replace(format="png", size=1024)))
         imageData = io.BytesIO(await gayImage.read())
 
         await ctx.reply(file=discord.File(imageData, 'gay.gif'))
 
     @commands.command(description="Pixelate an avatar.\n[member] value is optional.")
-    async def pixel(self, ctx, member: discord.Member=None):
+    async def pixel(self, ctx, member: discord.Member = None):
         if not member:
             member = ctx.author
-        pixelImage = await self.get_data('image', 'https://some-random-api.ml/canvas/pixelate?avatar={}'.format(member.avatar.replace(format="png", size=1024)))
+        pixelImage = await self.get_data('image', 'https://some-random-api.ml/canvas/pixelate?avatar={}'
+                                         .format(member.avatar.replace(format="png", size=1024)))
         imageData = io.BytesIO(await pixelImage.read())
-        
-        
+
         await ctx.reply(file=discord.File(imageData, 'pixel.gif'))
 
     @commands.command(description="Returns an image of an anime pat!")
@@ -357,32 +357,34 @@ class Image(commands.Cog):
             await ctx.send(image)
 
     @commands.command(description="This command makes anyone *triggered*.\n[member] value is optional.")
-    async def triggered(self, ctx, member: discord.Member=None):
+    async def triggered(self, ctx, member: discord.Member = None):
         if not member:
             member = ctx.author
             
-        wastedImage = await self.get_data('image', 'https://some-random-api.ml/canvas/triggered?avatar={}'.format(member.avatar.replace(format="png", size=1024)))
+        wastedImage = await self.get_data('image', 'https://some-random-api.ml/canvas/triggered?avatar={}'
+                                          .format(member.avatar.replace(format="png", size=1024)))
         imageData = io.BytesIO(await wastedImage.read())
-        
-        
+
         await ctx.reply(file=discord.File(imageData, 'triggered.gif'))
 
-    @commands.command(aliases=['passed'], description="What you see when you vote for ConchBot on Top.gg\n[member] value is optional.")
-    async def missionpassed(self, ctx, member: discord.Member=None):
+    @commands.command(aliases=['passed'], description="What you see when you vote for ConchBot on Top.gg\n[member] "
+                                                      "value is optional.")
+    async def missionpassed(self, ctx, member: discord.Member = None):
         if not member:
             member = ctx.author
             
-        passedImage = await self.get_data('image', 'https://some-random-api.ml/canvas/mission-passed?avatar={}'.format(member.avatar.replace(format="png", size=1024)))
+        passedImage = await self.get_data('image', 'https://some-random-api.ml/canvas/mission-passed?avatar={}'
+                                          .format(member.avatar.replace(format="png", size=1024)))
         imageData = io.BytesIO(await passedImage.read())
         
         await ctx.reply(file=discord.File(imageData, 'passed.gif'))
 
-
     @commands.command(description="You're wasted.\n[member] value is optional.")
-    async def wasted(self, ctx, member: discord.Member=None):
+    async def wasted(self, ctx, member: discord.Member = None):
         if not member:
             member = ctx.author
-        wastedImage = await self.get_data('image', 'https://some-random-api.ml/canvas/wasted?avatar={}'.format(member.avatar.replace(format="png", size=1024)))
+        wastedImage = await self.get_data('image', 'https://some-random-api.ml/canvas/wasted?avatar={}'
+                                          .format(member.avatar.replace(format="png", size=1024)))
         imageData = io.BytesIO(await wastedImage.read())
                     
         await ctx.reply(file=discord.File(imageData, 'wasted.gif'))
@@ -416,6 +418,7 @@ class Image(commands.Cog):
             api = await self.get_data('json', pikachu_image)
             image = api['link']
             await ctx.send(image)
+
 
 def setup(client):
     client.add_cog(Image(client))

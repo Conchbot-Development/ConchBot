@@ -2,15 +2,16 @@ import discord
 from discord.ext import commands
 import sqlite3
 
+
 class Config(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    async def check_blacklist(self, id):
+    async def check_blacklist(self, id1):
         db = sqlite3.connect('./bot/db/config.db')
         cursor = db.cursor()
 
-        cursor.execute(f"SELECT id FROM blacklist WHERE id = {id}")
+        cursor.execute(f"SELECT id FROM blacklist WHERE id = {id1}")
         result = cursor.fetchone()
 
         db.close()
@@ -32,24 +33,27 @@ class Config(commands.Cog):
                 cursor.execute(f"UPDATE config SET familyfriendly = 0 WHERE guild_id = {guild.id}")
             db.commit()
             cursor.close()
-            db.close()  
+            db.close()
             return "Inactive"
-        if check[0] == 1:  
+        if check[0] == 1:
             return "Active"
         elif check[0] == 0:
-            return "Inactive"      
+            return "Inactive"
         elif check[0] == 2:
             return "fuf"
 
     @commands.group(invoke_without_command=True, disabled=True)
     async def config(self, ctx):
         embed = discord.Embed(title="Configuration Settings", colour=discord.Colour.gold())
-        embed.add_field(name="Family Friendly Mode", value=f"Status: {await self.check_ff(ctx.guild)}\n "
-        "DISCLAIMER: Family friendly mode does not apply to the bot's AI function.")
+        embed.add_field(name="Family Friendly Mode",
+                        value=f"Status: {await self.check_ff(ctx.guild)}\n "
+                              "DISCLAIMER: Family friendly mode does not apply to the "
+                              "bot's AI function."
+                        )
         await ctx.send(embed=embed)
-    
+
     @config.command(disabled=True)
-    async def ff(self, ctx, mode):
+    async def ff(self, ctx):
         db = sqlite3.connect('./bot/db/config.db')
         cursor = db.cursor()
         status = await self.check_ff(ctx.guild)
@@ -61,6 +65,7 @@ class Config(commands.Cog):
         db.commit()
         cursor.close()
         db.close()
+
 
 def setup(client):
     client.add_cog(Config(client))
